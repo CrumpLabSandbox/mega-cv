@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MEGA·CV — modular audio + video synthesizer</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="bar">
+  <div class="logo">MEGA<b>·CV</b></div>
+  <button id="add" class="primary">+ Module</button>
+  <select id="presets" title="Load a factory patch"></select>
+  <button id="save" title="Download the patch as JSON">Save</button>
+  <button id="load" title="Load a patch JSON file">Load</button>
+  <button id="clear">Clear</button>
+  <span class="sp"></span>
+  <label class="lbl">Video
+    <select id="res">
+      <option>480x270</option><option selected>640x360</option><option>960x540</option><option>1280x720</option>
+    </select>
+  </label>
+  <button id="rec" title="Record the monitor and audio to a .webm file">&#9679; Rec</button>
+  <div class="seg" id="view">
+    <button data-v="split" class="on">Split</button><button data-v="rack">Rack</button><button data-v="matrix">Matrix</button>
+  </div>
+  <button id="power" class="on" title="Suspend / resume audio">&#9211;</button>
+</header>
+
+<main id="main" class="v-split">
+  <section id="rack"></section>
+  <section id="side">
+    <div id="monitor">
+      <canvas id="screen" width="640" height="360"></canvas>
+      <button id="fs" title="Fullscreen">&#x26F6;</button>
+      <span class="tag">PREVIEW</span>
+    </div>
+    <div id="mxbar">
+      <div class="seg" id="mxtab"><button data-v="a" class="on">Audio / CV matrix</button><button data-v="v">Video matrix</button></div>
+      <span id="mxstatus"></span>
+    </div>
+    <div id="matrix"></div>
+  </section>
+</main>
+
+<div id="menu" hidden></div>
+<div id="pinpop" hidden>
+  <div class="t"></div>
+  <div class="row"><input type="range" min="-2" max="2" step="0.01"><output></output></div>
+  <div class="row"><button data-v="-1">&minus;1</button><button data-v="0.1">.1</button><button data-v="0.25">.25</button><button data-v="0.5">.5</button><button data-v="1">1</button><button data-v="2">2</button></div>
+</div>
+<input type="file" id="file" accept=".json,application/json" hidden>
+
+<div id="start">
+  <div class="card">
+    <h1>MEGA<b>·CV</b></h1>
+    <p>A modular audio <i>and</i> video synthesizer for the browser, patched with a pin matrix.</p>
+    <p id="counts" class="dim"></p>
+    <button id="go" class="primary">Start</button>
+    <p id="err"></p>
+    <ul class="dim">
+      <li>Rows of the matrix are outputs, columns are inputs. Click a pin to connect.</li>
+      <li>Audio and CV are the same signal. Any audio output can drive any video parameter.</li>
+      <li>Drag knobs up and down. Double-click to reset.</li>
+    </ul>
+  </div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
