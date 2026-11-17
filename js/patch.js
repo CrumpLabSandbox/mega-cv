@@ -4,7 +4,7 @@ import { registry } from './defs.js';
 export class Patch {
   constructor(ac, video, env) {
     this.ac = ac; this.video = video; this.env = env;
-    this.mods = []; this.conns = []; this.on = () => { };
+    this.mods = []; this.conns = []; this.ver = 0; this.on = () => { };
   }
   get(id) { return this.mods.find(m => m.id === id); }
   find(from, out, to, inp) { return this.conns.find(c => c.from === from && c.out === out && c.to === to && c.inp === inp); }
@@ -20,7 +20,7 @@ export class Patch {
     for (const p of def.params) if (p.type !== 'btn') inst.impl.set(p.id, inst.params[p.id], true);
     // Keep every output pulled by the audio graph even when it only drives video CV.
     for (const k in inst.impl.aouts) { const [n, i] = this.pair(inst.impl.aouts[k]); n.connect(this.env.sink, i); }
-    this.mods.push(inst);
+    this.mods.push(inst); this.ver++;
     this.video.dirty = true;
     this.on('add', inst);
     return inst;
@@ -28,7 +28,7 @@ export class Patch {
   remove(inst) {
     for (const c of this.conns.filter(c => c.from === inst.id || c.to === inst.id)) this.disconnect(c);
     inst.impl.dispose?.();
-    this.mods.splice(this.mods.indexOf(inst), 1);
+    this.mods.splice(this.mods.indexOf(inst), 1); this.ver++;
     this.video.dirty = true;
     this.on('remove', inst);
   }

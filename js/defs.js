@@ -6,6 +6,7 @@ export const register = def => registry.set(def.type, def);
 export const P = (id, label, min, max, def, o = {}) => ({ id, label, min, max, def, type: 'knob', ...o });
 export const SEL = (id, label, options, def = 0) => ({ id, label, type: 'sel', options, def, min: 0, max: options.length - 1 });
 export const TOG = (id, label, def = 0) => ({ id, label, type: 'tog', def, min: 0, max: 1 });
+export const TEXT = (id, label, def = '') => ({ id, label, type: 'text', def });
 export const BTN = (id, label) => ({ id, label, type: 'btn' });
 
 // 'id:Label' strings -> port objects. type: 'a' (audio / CV) or 'v' (video)

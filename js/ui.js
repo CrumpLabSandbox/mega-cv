@@ -38,6 +38,13 @@ function control(p, inst, patch) {
     b.onclick = () => { patch.setParam(inst, p.id, inst.params[p.id] > 0.5 ? 0 : 1); show(); };
     show(); return b;
   }
+  if (p.type === 'text') {
+    const i = h('input', 'txt');
+    i.type = 'text'; i.value = inst.params[p.id]; i.placeholder = p.label; i.spellcheck = false; i.title = p.label + ' — press Enter to apply';
+    i.onchange = () => patch.setParam(inst, p.id, i.value.trim());
+    i.onkeydown = e => { e.stopPropagation(); if (e.key === 'Enter') i.blur(); };
+    return i;
+  }
   const b = h('button', 'btn', p.label);
   b.onclick = () => inst.impl.action?.(p.id);
   return b;
@@ -68,6 +75,7 @@ export class Rack {
     for (const p of def.params) (p.type === 'knob' ? knobs : others).append(control(p, inst, this.patch));
     if (nk) el.append(knobs);
     if (others.children.length) el.append(others);
+    if (def.status) el.append(inst.sayEl = h('div', 'status', inst.status || ''));
     const io = (l, cls) => l.length ? `<span class="${cls}">${l.map(p => p.label).join(' · ')}</span>` : '';
     el.append(h('div', 'io', io(def.ins, 'i') + io(def.outs, 'o')));
     (isV ? this.secV : this.secA).append(el);

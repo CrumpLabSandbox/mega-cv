@@ -82,7 +82,7 @@ void main(){oC=vec4(clamp(fx(vUv).rgb,0.,1.),1.);}`;
   progFor(def) {
     let pr = this.progs.get(def.type);
     if (!pr) {
-      const names = def.params.filter(p => p.type !== 'btn').map(p => p.id);
+      const names = [...def.params.filter(p => p.type !== 'btn' && p.type !== 'text').map(p => p.id), ...(def.xuni || [])];
       try { pr = this.program(def.glsl, def.vins, names, def.tex); }
       catch (e) { console.error(`Shader error in "${def.type}":\n${e.message}`); pr = this.program('vec4 fx(vec2 uv){return vec4(1.,0.,1.,1.);}', def.vins, names, def.tex); }
       this.progs.set(def.type, pr);
@@ -92,17 +92,18 @@ void main(){oC=vec4(clamp(fx(vUv).rgb,0.,1.),1.);}`;
 
   create(def, inst) {
     const ac = this.ac;
-    const impl = { ains: {}, aouts: {}, vin: {}, acc: {}, cvn: {}, cvc: {}, an: {}, xt: {}, tg: [this.target(), this.target()], prog: this.progFor(def) };
+    const impl = { ains: {}, aouts: {}, vin: {}, acc: {}, cvn: {}, cvc: {}, an: {}, xt: {}, u: {}, tg: [this.target(), this.target()], prog: this.progFor(def) };
     for (const p of def.params) {
       if (p.acc) impl.acc[p.id] = 0;
       if (p.cv) { const an = ac.createAnalyser(); an.fftSize = 32; an.connect(this.sink); impl.ains[p.id] = an; impl.cvn[p.id] = an; }
     }
     for (const a of def.ains) { const an = ac.createAnalyser(); an.fftSize = a.fft || 1024; an.smoothingTimeConstant = 0.6; an.connect(this.sink); impl.ains[a.id] = an; impl.an[a.id] = an; }
     for (const id of def.aouts) { const cs = ac.createConstantSource(); cs.offset.value = 0; cs.start(); impl.aouts[id] = cs; }
-    impl.set = () => { };
+    impl.set = (id, v, init) => def.onParam?.(inst, this, impl, id, v, init);
     impl.connected = (port, d) => { impl.cvc[port] = (impl.cvc[port] || 0) + d; };
     impl.action = id => def.action?.(inst, this, impl, id);
     impl.dispose = () => {
+      impl.dead = true;
       def.dispose?.(inst, this, impl);
       impl.tg.forEach(t => this.freeTarget(t));
       for (const k in impl.xt) this.gl.deleteTexture(impl.xt[k]);
@@ -170,13 +171,15 @@ void main(){oC=vec4(clamp(fx(vUv).rgb,0.,1.),1.);}`;
       for (const v of def.vins) { const s = impl.vin[v]; bind(u[v], s && s.impl.tg[0].tex); }
       for (const x of def.tex) bind(u[x], impl.xt[x]);
       for (const p of def.params) {
-        if (p.type === 'btn') continue;
+        if (p.type === 'btn' || p.type === 'text') continue;
         let v = m.params[p.id];
         if (p.cv) v = this.cv(impl, p, v);
         if (p.acc) { v = impl.acc[p.id] = (impl.acc[p.id] + v * dt) % 4096; }
         gl.uniform1f(u[p.id], v);
+        if (def.draw) (impl.pv || (impl.pv = {}))[p.id] = v;
       }
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      if (def.xuni) for (const n of def.xuni) gl.uniform1f(u[n], impl.u[n] ?? 1);
+      if (def.draw) { def.draw(m, this, impl); gl.viewport(0, 0, this.w, this.h); } else gl.drawArrays(gl.TRIANGLES, 0, 3);
       impl.tg.reverse();
       def.after?.(m, this, impl);
     }

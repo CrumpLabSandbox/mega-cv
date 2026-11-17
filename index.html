@@ -20,6 +20,7 @@
       <option>480x270</option><option selected>640x360</option><option>960x540</option><option>1280x720</option>
     </select>
   </label>
+  <button id="immersive" class="primary" title="Fly inside the patch: a 3D world driven by the synth">&#9670; Immersive</button>
   <button id="rec" title="Record the monitor and audio to a .webm file">&#9679; Rec</button>
   <div class="seg" id="view">
     <button data-v="split" class="on">Split</button><button data-v="rack">Rack</button><button data-v="matrix">Matrix</button>
@@ -34,6 +35,13 @@
       <canvas id="screen" width="640" height="360"></canvas>
       <button id="fs" title="Fullscreen">&#x26F6;</button>
       <span class="tag">PREVIEW</span>
+      <div id="hud">
+        <div class="cross"></div>
+        <div id="hudpin"></div>
+        <div id="hudmsg"></div>
+        <div id="hudscore"></div>
+        <div id="hudhelp">WASD fly &middot; Space / C up / down &middot; Shift fast &middot; mouse or arrows look &middot; click a wall pin to patch &middot; fly into crystals to rewire &middot; Z undo &middot; F fullscreen &middot; Esc exit</div>
+      </div>
     </div>
     <div id="mxbar">
       <div class="seg" id="mxtab"><button data-v="a" class="on">Audio / CV matrix</button><button data-v="v">Video matrix</button></div>

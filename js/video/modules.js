@@ -2,12 +2,13 @@
 // Available in every shader: T (seconds), F (frame count), R (resolution), P (this module's previous frame),
 // one sampler per video input (a, b, c), one float uniform per param, plus the helpers in engine.js LIB.
 // Param flags: cv = gets a CV input in the matrix (+-1 sweeps the full range), acc = integrated over time (speed -> phase).
-import { register, P, SEL, TOG, BTN, ports } from '../defs.js';
+import { register, P, SEL, TOG, BTN, TEXT, ports } from '../defs.js';
+import { loadWeb, webFrame } from './web.js';
 
-function V(type, name, cat, o) {
+export function V(type, name, cat, o) {
   const params = o.params || [], vins = ports(o.ins || [], 'v'), ains = o.ains || [], aouts = o.aouts || [];
   register({
-    type, name, cat, domain: 'v', params, glsl: o.glsl, tex: o.tex || [], cols: o.cols,
+    type, name, cat, domain: 'v', params, glsl: o.glsl, tex: o.tex || [], cols: o.cols, xuni: o.xuni, status: o.status, onParam: o.onParam, draw: o.draw,
     vins: vins.map(p => p.id), ains, aouts: ports(aouts, 'a').map(p => p.id),
     ins: [...vins, ...ports(ains.map(a => a.id + ':' + (a.label || a.id)), 'a'), ...params.filter(p => p.cv).map(p => ({ id: p.id, label: p.label, type: 'a' }))],
     outs: [...(o.noOut ? [] : [{ id: 'out', label: 'out', type: 'v' }]), ...ports(aouts, 'a')],
@@ -102,6 +103,11 @@ return vec4(vec3(smoothstep(1.,1.01+soft*4.,v)),1.);}`,
 
 // ---- sources that need JavaScript (camera, media files, audio visualisers)
 const stopMedia = (inst, eng, impl) => { impl.stream?.getTracks().forEach(t => t.stop()); impl.el?.pause?.(); impl.el = null; };
+const useStream = (impl, promise) => promise.then(st => {
+  const v = document.createElement('video');
+  v.srcObject = st; v.muted = true; v.playsInline = true; v.play();
+  impl.stream = st; impl.el = v;
+}).catch(e => console.warn('Video source unavailable', e));
 const elFrame = name => (inst, eng, impl) => {
   const el = impl.el;
   if (!el) return;
@@ -110,15 +116,25 @@ const elFrame = name => (inst, eng, impl) => {
 V('camera', 'Camera', 'Video Sources', {
   params: [BTN('on', 'Enable camera'), TOG('flip', 'Mirror', 1)], tex: ['cam'],
   glsl: `vec4 fx(vec2 uv){return texture(cam,vec2(flip>.5?1.-uv.x:uv.x,uv.y));}`,
-  action(inst, eng, impl) {
-    if (impl.stream) return;
-    navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } }).then(st => {
-      const v = document.createElement('video');
-      v.srcObject = st; v.muted = true; v.playsInline = true; v.play();
-      impl.stream = st; impl.el = v;
-    }).catch(e => console.warn('Camera unavailable', e));
-  },
+  action(inst, eng, impl) { if (!impl.stream) useStream(impl, navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } })); },
   frame: elFrame('cam'), dispose: stopMedia,
+});
+V('screen', 'Screen Capture', 'Video Sources', {
+  params: [BTN('on', 'Share a tab / window / screen')], tex: ['cam'],
+  glsl: `vec4 fx(vec2 uv){return texture(cam,uv);}`,
+  action(inst, eng, impl) { stopMedia(inst, eng, impl); impl.stream = null; useStream(impl, navigator.mediaDevices.getDisplayMedia({ video: true, audio: false })); },
+  frame: elFrame('cam'), dispose: stopMedia,
+});
+V('web', 'Web Page', 'Video Sources', {
+  status: 1, tex: ['page'], xuni: ['pages'], cols: 3,
+  params: [TEXT('url', 'https://…', 'https://en.wikipedia.org/wiki/Video_synthesizer'), BTN('go', 'Reload'), SEL('mode', 'Show', ['Rendered page', 'Image slideshow']),
+    P('scroll', 'Scroll', -1, 1, 0.04, { acc: 1, cv: 1 }), P('pos', 'Position', 0, 1, 0, CV), P('zoom', 'Zoom', 0.25, 8, 1, { exp: 1, cv: 1 }),
+    P('hold', 'Slide time', 0.1, 30, 3, { exp: 1, unit: 's' }), P('refresh', 'Refresh', 0, 600, 0, { step: 1, unit: 's' })],
+  glsl: `vec4 fx(vec2 uv){vec2 q=(uv-.5)/zoom+.5;float y=mod(pos*max(pages-1.,0.)+(pages>1.01?scroll:0.)+(1.-q.y),pages);return texture(page,vec2(q.x,1.-y/pages));}`,
+  onParam(inst, eng, impl, id) { if (id === 'url' || id === 'mode') { clearTimeout(impl.pend); impl.pend = setTimeout(() => loadWeb(inst, eng, impl), 60); } },
+  action(inst, eng, impl) { loadWeb(inst, eng, impl); },
+  frame: webFrame,
+  dispose(inst, eng, impl) { clearTimeout(impl.pend); impl.el?.pause?.(); },
 });
 V('media', 'Media File', 'Video Sources', {
   params: [BTN('load', 'Load image / video')], tex: ['img'],

@@ -1,5 +1,6 @@
 import './audio/modules.js';
 import './video/modules.js';
+import { initWorld } from './video/world.js';
 import { registry } from './defs.js';
 import { Patch } from './patch.js';
 import { VideoEngine } from './video/engine.js';
@@ -41,8 +42,12 @@ async function boot() {
   addEventListener('keydown', e => { if (e.key === 'Escape') { menu.hidden = true; $('pinpop').hidden = true; } });
 
   const sel = $('presets');
-  sel.add(new Option('Presets…', ''));
-  presets.forEach((p, i) => sel.add(new Option(p.name, i)));
+  sel.add(new Option(`Presets (${presets.length})…`, ''));
+  const groups = {};
+  presets.forEach((p, i) => {
+    const g = groups[p.group] || (groups[p.group] = sel.appendChild(Object.assign(document.createElement('optgroup'), { label: p.group })));
+    g.append(new Option(p.name, i));
+  });
   sel.onchange = () => { if (sel.value !== '') load(presets[+sel.value]); sel.value = ''; };
 
   $('save').onclick = () => {
@@ -59,6 +64,7 @@ async function boot() {
   $('clear').onclick = () => { if (!patch.mods.length || confirm('Remove all modules?')) load({ mods: [], conns: [] }); };
 
   $('res').onchange = e => { const [w, h] = e.target.value.split('x').map(Number); video.setRes(w, h, patch.mods); };
+  const worldUpdate = initWorld({ patch, video, canvas: $('screen'), setRes: (w, h) => { $('res').value = `${w}x${h}`; video.setRes(w, h, patch.mods); } });
   $('fs').onclick = () => $('screen').requestFullscreen?.();
   $('power').onclick = () => { const on = ac.state === 'running'; on ? ac.suspend() : ac.resume(); $('power').classList.toggle('on', !on); };
 
@@ -95,7 +101,7 @@ async function boot() {
   const frame = now => {
     const dt = Math.min(0.1, (now - last) / 1000); last = now;
     if (mxDirty) { mxDirty = false; matrix.render(); }
-    try { video.render(patch.mods, dt); } catch (e) { console.error(e); }
+    try { worldUpdate(dt); video.render(patch.mods, dt); } catch (e) { console.error(e); }
     for (const m of patch.mods) m.impl.tick?.();
     requestAnimationFrame(frame);
   };

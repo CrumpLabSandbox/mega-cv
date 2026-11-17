@@ -55,6 +55,8 @@ h2.sec::before { content: ''; width: 8px; height: 8px; border-radius: 50%; backg
 .others .sel { display: flex; align-items: center; gap: 4px; color: var(--dim); font-size: 10px; flex: 1 1 100%; }
 .others select { flex: 1; padding: 2px 4px; font-size: 10.5px; min-width: 0; }
 .others button { font-size: 10.5px; padding: 3px 8px; flex: 1 1 auto; } .others .tog.on { background: var(--c); border-color: var(--c); color: #111; font-weight: 700; }
+.others .txt { flex: 1 1 100%; min-width: 0; font: inherit; font-size: 10.5px; color: var(--text); background: #0b0d10; border: 1px solid var(--line); border-radius: 4px; padding: 3px 5px; }
+.status { margin-top: 5px; font-size: 9.5px; color: #c9b06a; max-width: 200px; }
 .io { margin-top: 6px; padding-top: 4px; border-top: 1px dashed var(--line); font-size: 9px; color: var(--dim); max-width: 200px; display: flex; flex-direction: column; gap: 1px; }
 .io .i::before { content: 'in  '; color: #555c6b; } .io .o::before { content: 'out '; color: #555c6b; } .io .o { color: #aab1bf; }
 
@@ -105,3 +107,17 @@ table.mx { border-collapse: separate; border-spacing: 0; font-size: 10px; }
   #main.v-split { flex-direction: column-reverse; } #main.v-split #side { border-left: 0; border-bottom: 1px solid var(--line); flex: 0 0 55%; }
   #bar { overflow-x: auto; } #menu { flex-direction: column; } #menu .col { width: auto; }
 }
+
+/* ---------- immersive 3D mode */
+#hud { display: none; position: absolute; inset: 0; cursor: crosshair; font-size: 13px; text-shadow: 0 1px 3px #000, 0 0 8px #000; user-select: none; }
+body.immersive #hud { display: block; }
+body.immersive #monitor { position: fixed; inset: 0; z-index: 40; max-height: none; border: 0; }
+body.immersive #screen { width: 100%; height: 100%; max-width: none; max-height: none; }
+body.immersive #fs { display: none; }
+#hud .cross { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px; border: 1.5px solid #fffc; border-radius: 50%; }
+#hud .cross::after { content: ''; position: absolute; left: 50%; top: 50%; width: 2px; height: 2px; margin: -1px; background: #fff; }
+#hudpin { position: absolute; left: 0; right: 0; top: calc(50% + 26px); text-align: center; color: #cfd6e4; }
+#hudpin.on { color: #fff; font-weight: 700; font-size: 15px; }
+#hudmsg { position: absolute; left: 0; right: 0; top: 14%; text-align: center; font-size: 17px; font-weight: 700; color: var(--a); }
+#hudscore { position: absolute; right: 18px; top: 14px; color: var(--v); font-weight: 700; }
+#hudhelp { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; color: #aab1bf; font-size: 11.5px; }
