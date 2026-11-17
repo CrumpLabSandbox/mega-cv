@@ -194,23 +194,37 @@ export function initWorld({ patch, video, canvas, setRes }) {
     document.body.classList.add('immersive');
     if (video.h < 540) setRes(960, 540);
     video.preview = null;
-    lock();
+    syncLock(); lock();
     say('Fly into crystals to rewire the synth. Aim at a wall pin and click to patch it.');
   }
   function exit() {
-    W.active = false; document.body.classList.remove('immersive');
+    W.active = false; W.locked = false; W.keys.clear(); W.hover = null;
+    document.body.classList.remove('immersive');
     if (document.pointerLockElement) document.exitPointerLock();
+    if (document.fullscreenElement) document.exitFullscreen?.();
   }
-  document.getElementById('immersive').onclick = enter;
-  document.addEventListener('pointerlockchange', () => { if (!document.pointerLockElement && W.active && W.locked) exit(); W.locked = !!document.pointerLockElement; });
+  const toggle = () => (W.active ? exit() : enter());
+  document.getElementById('immersive').onclick = toggle;
+  const $exit = document.getElementById('hudexit');
+  $exit.onmousedown = e => e.stopPropagation(); // do not treat it as a click on the world
+  $exit.onclick = exit;
+
+  // Mouse capture is optional: losing it (Esc, or a browser that refuses it) only frees the cursor.
+  const syncLock = () => { W.locked = !!document.pointerLockElement; hud.classList.toggle('free', !W.locked); };
+  document.addEventListener('pointerlockchange', syncLock);
 
   const look = (dx, dy) => { W.cam.yaw += dx * 0.0025; W.cam.pitch = Math.max(-1.5, Math.min(1.5, W.cam.pitch - dy * 0.0025)); };
-  addEventListener('mousemove', e => { if (W.active && (document.pointerLockElement || e.buttons & 2)) look(e.movementX, e.movementY); });
+  addEventListener('mousemove', e => {
+    if (!W.active) return;
+    if (document.pointerLockElement || e.buttons & 2) look(e.movementX, e.movementY);
+    const r = canvas.getBoundingClientRect(), a = video.w / video.h, w = Math.min(r.width, r.height * a), h = w / a; // letterboxed picture
+    W.mouse = [(e.clientX - r.left - r.width / 2) / (w / 2), -(e.clientY - r.top - r.height / 2) / (h / 2)];
+  });
   hud.addEventListener('contextmenu', e => e.preventDefault());
   hud.addEventListener('mousedown', e => {
     if (!W.active || e.button !== 0) return;
-    if (!document.pointerLockElement) lock();
-    const h = W.hover; if (!h) return;
+    const h = W.hover;
+    if (!h) { if (!document.pointerLockElement) lock(); return; } // click empty space to capture the mouse
     const ex = connAt(patch, h.wall, h.r, h.c), row = h.wall.rows[h.r], col = h.wall.cols[h.c];
     if (ex) { patch.disconnect(ex); say('Unplugged: ' + label(h.wall, h.r, h.c)); }
     else { patch.connect(row.m.id, row.p.id, col.m.id, col.p.id, 1); say('Patched: ' + label(h.wall, h.r, h.c)); }
@@ -220,7 +234,7 @@ export function initWorld({ patch, video, canvas, setRes }) {
     if (!W.active) return;
     e.stopImmediatePropagation();
     const k = e.key.toLowerCase();
-    if (k === 'escape') { exit(); return; }
+    if (k === 'escape' || k === 'x') { exit(); return; }
     if (k === 'z' && W.undo.length) { const c = W.undo.pop(); patch.disconnect(c); say('Undone'); }
     if (k === 'f') document.getElementById('monitor').requestFullscreen?.();
     W.keys.add(k); if (k.startsWith('arrow') || k === ' ') e.preventDefault();
@@ -253,7 +267,13 @@ export function initWorld({ patch, video, canvas, setRes }) {
     }
     cam.p[0] = Math.max(-WALLX + 1, Math.min(WALLX - 1, cam.p[0])); cam.p[1] = Math.max(-12, Math.min(12, cam.p[1])); cam.p[2] = Math.max(-40, Math.min(40, cam.p[2]));
 
-    W.hover = inst.params.wall > 0.5 ? pick(cam, B.f) : null;
+    let ray = B.f; // aim with the crosshair when the mouse is captured, otherwise with the cursor
+    if (!W.locked && W.mouse) {
+      const mx = W.mouse[0] * FOV * video.w / video.h, my = W.mouse[1] * FOV;
+      ray = [0, 1, 2].map(i => B.f[i] + B.r[i] * mx + B.u[i] * my);
+      const l = Math.hypot(...ray); ray = ray.map(x => x / l);
+    }
+    W.hover = inst.params.wall > 0.5 ? pick(cam, ray) : null;
     let near = null, nd = 7;
     for (const c of W.crystals) {
       if (!c.conn) c.conn = propose(patch);

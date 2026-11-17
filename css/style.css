@@ -121,3 +121,7 @@ body.immersive #fs { display: none; }
 #hudmsg { position: absolute; left: 0; right: 0; top: 14%; text-align: center; font-size: 17px; font-weight: 700; color: var(--a); }
 #hudscore { position: absolute; right: 18px; top: 14px; color: var(--v); font-weight: 700; }
 #hudhelp { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; color: #aab1bf; font-size: 11.5px; }
+#hudexit { position: absolute; left: 14px; top: 12px; cursor: pointer; background: #000a; border-color: #fff6; color: #fff; font-size: 12px; padding: 5px 12px; }
+#hudexit:hover { background: var(--a); border-color: var(--a); color: #111; }
+#hud.free .cross { display: none; }
+#hud.free { cursor: default; }
