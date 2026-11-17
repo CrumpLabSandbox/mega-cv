@@ -31,6 +31,7 @@ server (or the GitHub Pages copy) runs everything else, but there Web Page only 
 - **Audio drives video**: every video parameter marked for CV appears as a column in the audio/CV matrix.
   A CV of ±1 sweeps the parameter across its full range.
 - **Video drives audio**: the *Video Probe* module turns the brightness / colour of a region into CV.
+- **Full screen** (top bar, the corner button on the monitor, or double-click the monitor): toggles the video to fill the screen; Esc also exits.
 - **Immersive** (top bar): fly inside the patch. See *World 3D* below.
 - **Presets**: 80+ factory patches, grouped by Beats / Melodic / Ambient / 3D worlds / Playable / Video only / Live input.
 - Patches autosave to `localStorage`; **Save / Load** use JSON files; **Rec** captures the monitor + audio to `.webm`.

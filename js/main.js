@@ -65,7 +65,23 @@ async function boot() {
 
   $('res').onchange = e => { const [w, h] = e.target.value.split('x').map(Number); video.setRes(w, h, patch.mods); };
   const worldUpdate = initWorld({ patch, video, canvas: $('screen'), setRes: (w, h) => { $('res').value = `${w}x${h}`; video.setRes(w, h, patch.mods); } });
-  $('fs').onclick = () => $('screen').requestFullscreen?.();
+  // Full-screen video toggle. Fills the window via CSS and also asks for real fullscreen;
+  // if the browser refuses that, the window-filling view still works.
+  let wasFs = false;
+  const setFull = on => {
+    document.body.classList.toggle('vfull', on);
+    for (const b of [$('fs'), $('full')]) b.classList.toggle('on', on);
+    $('fs').innerHTML = on ? '&times; Exit full screen' : '&#x26F6;';
+    try {
+      if (on && !document.fullscreenElement) $('monitor').requestFullscreen?.()?.catch?.(() => { });
+      else if (!on && document.fullscreenElement) document.exitFullscreen?.();
+    } catch { }
+  };
+  const toggleFull = () => setFull(!document.body.classList.contains('vfull'));
+  $('fs').onclick = $('full').onclick = toggleFull;
+  $('screen').ondblclick = toggleFull;
+  document.addEventListener('fullscreenchange', () => { if (wasFs && !document.fullscreenElement) setFull(false); wasFs = !!document.fullscreenElement; });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.classList.contains('vfull')) setFull(false); });
   $('power').onclick = () => { const on = ac.state === 'running'; on ? ac.suspend() : ac.resume(); $('power').classList.toggle('on', !on); };
 
   let rec = null;

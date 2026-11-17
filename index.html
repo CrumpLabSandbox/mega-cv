@@ -20,6 +20,7 @@
       <option>480x270</option><option selected>640x360</option><option>960x540</option><option>1280x720</option>
     </select>
   </label>
+  <button id="full" title="Toggle full-screen video (double-click the monitor also works, Esc exits)">&#x26F6; Full screen</button>
   <button id="immersive" class="primary" title="Fly inside the patch: a 3D world driven by the synth">&#9670; Immersive</button>
   <button id="rec" title="Record the monitor and audio to a .webm file">&#9679; Rec</button>
   <div class="seg" id="view">
@@ -33,7 +34,7 @@
   <section id="side">
     <div id="monitor">
       <canvas id="screen" width="640" height="360"></canvas>
-      <button id="fs" title="Fullscreen">&#x26F6;</button>
+      <button id="fs" title="Toggle full-screen video">&#x26F6;</button>
       <span class="tag">PREVIEW</span>
       <div id="hud">
         <button id="hudexit" title="Leave immersive mode (Esc)">&times; Exit immersive</button>
