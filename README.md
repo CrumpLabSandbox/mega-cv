@@ -33,7 +33,8 @@ server (or the GitHub Pages copy) runs everything else, but there Web Page only 
 - **Video drives audio**: the *Video Probe* module turns the brightness / colour of a region into CV.
 - **Full screen** (top bar, the corner button on the monitor, or double-click the monitor): toggles the video to fill the screen; Esc also exits.
 - **Immersive** (top bar): fly inside the patch. See *World 3D* below.
-- **Presets**: 80+ factory patches, grouped by Beats / Melodic / Ambient / 3D worlds / Playable / Video only / Live input.
+- **Presets**: about 100 factory patches, grouped by Beats / Techno LFO lab / Melodic / Ambient / 3D worlds / Playable / Video only / Live input.
+  The *Techno LFO lab* patches run five LFOs that modulate the sound, the picture and each other (a ring-modulated "complex LFO", or a pair of LFOs driving each other's rate).
 - Patches autosave to `localStorage`; **Save / Load** use JSON files; **Rec** captures the monitor + audio to `.webm`.
 
 Signal conventions: pitch CV is 1.0 per octave, gates and triggers are high above 0.5, LFOs are ±1.

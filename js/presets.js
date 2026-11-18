@@ -117,6 +117,39 @@ const AUD = {
     mods: ['micin1', ['svf1', { cut: 250, res: 0.1 }], ['follow1', { gain: 6 }], ['follow2', { gain: 10, rel: 0.08 }], ['lfo1', { rate: 0.08 }]],
     conns: ['micin1.out>svf1.in', 'svf1.lp>follow1.in', 'svf1.hp>follow2.in'],
   },
+  // ---- techno beds with an LFO network: LFOs modulate the sound, each other, and (through l1..l5 / lx) the picture
+  technolfo: { // lx = lfo1 x lfo2 (ring-modulated "complex LFO") which drives lfo3's rate
+    sig: 'comp1.out', sig2: 'ladder1.out', env: 'follow1.out', cv2: 'adsr1.env', lfo: 'lfo1.sin',
+    l1: 'lfo1.sin', l2: 'lfo2.tri', l3: 'lfo3.sin', l4: 'slew1.out', l5: 'lfo5.sin', lx: 'ring1.out',
+    mods: [['clock1', { bpm: 128 }], ['kick1', { decay: 0.3, drive: 0.5 }], ['euclid1', { steps: 16, pulses: 11 }], 'hat1', ['vca1', { level: 0.5 }],
+      ['euclid2', { steps: 16, pulses: 2, rot: 4 }], ['snare1', { decay: 0.12 }], ['seq1', { s0: 0, s1: 0, s2: 12, s3: 0, s4: 3, s5: 0, s6: 0, s7: 10 }], ['vco1', { freq: 55 }],
+      ['adsr1', { a: 0.002, d: 0.14, s: 0, r: 0.05 }], ['ladder1', { cut: 240, res: 0.6, cva: 3 }], 'vca2', ['euclid3', { steps: 16, pulses: 3, rot: 2 }], ['ad1', { rise: 0.002, fall: 0.25 }],
+      ['fm1', { freq: 220, ratio: 2, index: 1.5 }], 'vca3', ['delay1', { time: 0.352, fb: 0.55, mix: 0.45, mod: 0.01 }], ['mixer1', { la: 1, lb: 0.35, lc: 0.5, ld: 0.6 }], ['mixer2', { la: 1, lb: 0.4 }],
+      'comp1', 'follow1', ['lfo1', { rate: 0.11 }], ['lfo2', { rate: 2.13 }], ['lfo3', { rate: 8.53 }], ['lfo4', { rate: 0.7 }], ['lfo5', { rate: 0.05 }], 'ring1', ['chaos1', { rate: 0.3 }],
+      ['slew1', { rise: 0.15, fall: 0.15 }], ['out1', { vol: 0.6 }]],
+    conns: ['clock1.s4>kick1.trig', 'clock1.s16>euclid1.clock', 'euclid1.gate>hat1.trig', 'hat1.out>vca1.in', 'lfo3.sqr>vca1.cv*0.5',
+      'clock1.s16>euclid2.clock', 'euclid2.gate>snare1.trig', 'clock1.s16>seq1.clock', 'seq1.cv>vco1.voct', 'clock1.s16>adsr1.gate', 'vco1.sqr>ladder1.in', 'lfo2.tri>vco1.pwm*0.7',
+      'adsr1.env>ladder1.cv*0.6', 'lfo1.sin>ladder1.cv*0.5', 'ladder1.out>vca2.in', 'adsr1.env>vca2.cv',
+      'clock1.s16>euclid3.clock', 'euclid3.gate>ad1.trig', 'ad1.out>vca3.cv', 'fm1.out>vca3.in', 'lfo4.rnd>slew1.in', 'slew1.out>fm1.idx*0.5', 'vca3.out>delay1.in', 'lfo4.sin>delay1.tcv*0.5',
+      'kick1.out>mixer1.a', 'vca1.out>mixer1.b', 'snare1.out>mixer1.c', 'vca2.out>mixer1.d', 'mixer1.out>mixer2.a', 'delay1.out>mixer2.b', 'mixer2.out>comp1.in', 'comp1.out>out1.in', 'kick1.out>follow1.in',
+      // the LFO network
+      'chaos1.x>lfo1.rate*0.3', 'lfo1.tri>ring1.a', 'lfo2.sin>ring1.b', 'ring1.out>lfo3.rate*0.25', 'lfo1.sin>lfo2.rate*0.4', 'lfo5.tri>lfo2.rate*0.2', 'lfo5.sin>lfo4.rate*0.5', 'clock1.bar>lfo3.reset'],
+  },
+  technoloop: { // lfo1 and lfo2 modulate each other's rate (a feedback pair); their sum (lx) drives lfo3
+    sig: 'comp1.out', sig2: 'svf1.lp', env: 'follow1.out', cv2: 'adsr1.env', lfo: 'lfo1.sin',
+    l1: 'lfo1.sin', l2: 'lfo2.tri', l3: 'lfo3.sin', l4: 'lfo4.tri', l5: 'lfo5.sin', lx: 'atten1.out',
+    mods: [['clock1', { bpm: 136 }], ['kick1', { decay: 0.28, drive: 0.6 }], ['euclid1', { steps: 16, pulses: 4, rot: 2 }], ['hat1', { decay: 0.09 }], 'pan1',
+      ['seq1', { s0: 0, s1: 3, s2: 0, s3: 0, s4: 7, s5: 0, s6: 10, s7: 0 }], ['vco1', { freq: 49 }], ['fold1', { gain: 1.6 }], ['svf1', { cut: 300, res: 0.7, cva: 3.5 }], ['adsr1', { a: 0.002, d: 0.16, s: 0.1, r: 0.06 }], 'vca1',
+      ['turing1', { prob: 0.1, len: 5, range: 1 }], ['quant1', { scale: 4 }], ['euclid2', { steps: 16, pulses: 5, rot: 3 }], ['pluck1', { freq: 196, decay: 0.7, damp: 0.4 }],
+      ['delay1', { time: 0.331, fb: 0.6, mix: 0.5, mod: 0.012 }], ['mixer1', { la: 1, lb: 0.6, lc: 0.5 }], 'comp1', 'follow1',
+      ['lfo1', { rate: 0.23 }], ['lfo2', { rate: 0.61 }], ['lfo3', { rate: 4.53 }], ['lfo4', { rate: 0.31 }], ['lfo5', { rate: 0.04 }], ['atten1', { gain: 1 }], ['out1', { vol: 0.6 }]],
+    conns: ['clock1.s4>kick1.trig', 'clock1.s16>euclid1.clock', 'euclid1.gate>hat1.trig', 'hat1.out>pan1.in', 'lfo3.sin>pan1.cv*0.9', 'pan1.l>out1.l*0.35', 'pan1.r>out1.r*0.35',
+      'clock1.s16>seq1.clock', 'seq1.cv>vco1.voct', 'clock1.s16>adsr1.gate', 'vco1.saw>fold1.in', 'lfo2.sin>fold1.cv*0.25', 'fold1.out>svf1.in', 'adsr1.env>svf1.cv*0.6', 'lfo1.sin>svf1.cv*0.4',
+      'svf1.lp>vca1.in', 'adsr1.env>vca1.cv', 'clock1.s8>turing1.clock', 'turing1.cv>quant1.in', 'quant1.out>pluck1.voct', 'clock1.s16>euclid2.clock', 'euclid2.gate>pluck1.trig',
+      'pluck1.out>delay1.in', 'lfo4.tri>delay1.tcv*0.6', 'kick1.out>mixer1.a', 'vca1.out>mixer1.b', 'delay1.out>mixer1.c', 'mixer1.out>comp1.in', 'comp1.out>out1.in', 'kick1.out>follow1.in',
+      // the LFO network
+      'lfo1.sin>lfo2.rate*0.35', 'lfo2.tri>lfo1.rate*0.35', 'lfo1.sin>atten1.in*0.5', 'lfo2.sin>atten1.in*0.5', 'atten1.out>lfo3.rate*0.4', 'lfo5.sin>lfo4.rate*0.6', 'lfo5.saw>lfo1.rate*0.2', 'clock1.bar>lfo3.reset'],
+  },
   silent: { // nothing reaches the speakers: slow modulators plus two unheard oscillators for the scopes
     sig: 'vco1.saw', sig2: 'vco2.sin', env: 'chaos1.x', cv2: 'chaos1.y', lfo: 'lfo1.sin',
     mods: [['lfo1', { rate: 0.1 }], ['lfo2', { rate: 0.037 }], ['chaos1', { rate: 0.4 }], ['vco1', { freq: 110 }], ['vco2', { freq: 165.4 }]],
@@ -246,6 +279,49 @@ const VID = {
     conns: chain('pattern1', 'xform1', 'feedback1', 'colorize1', 'vout1'),
     hooks: ['$env>xform1.zoom*0.3', '$lfo>xform1.ang*0.4', '$cv2>colorize1.hue*0.4'],
   },
+  // ---- LFO-rich chains: six modulators each (l1..l5 and the complex lx), for the technolfo / technoloop beds
+  lfomandala: {
+    mods: [['vosc1', { geom: 1, freq: 6, speed: 0.6 }], ['colorize1', { range: 0.8, full: 0.3 }], ['feedback1', { zoom: 1.04, decay: 0.9, hsh: 0.015 }], ['kaleid1', { segs: 8 }], ['glow1', { th: 0.5, amt: 0.6 }], 'vout1'],
+    conns: chain('vosc1', 'colorize1', 'feedback1', 'kaleid1', 'glow1', 'vout1'),
+    hooks: ['$l1>vosc1.freq*0.3', '$l2>vosc1.ang*0.4', '$l3>feedback1.zoom*0.08', '$lx>feedback1.ang*0.15', '$l4>colorize1.hue*0.4', '$l5>kaleid1.zoom*0.3', '$env>glow1.amt*0.5'],
+  },
+  lfotunnel: {
+    mods: [['pattern1', { kind: 1, sx: 6, sy: 6, thick: 0.3 }], ['colorize1', { range: 0.5, hue: 0.55, full: 0.6 }], ['tunnel1', { speed: 0.7, reps: 3 }], ['warp1', { kind: 1, freq: 6, amp: 0.15 }], ['rgbsplit1', { amt: 0.1, radial: 1 }], 'vout1'],
+    conns: chain('pattern1', 'colorize1', 'tunnel1', 'warp1', 'rgbsplit1', 'vout1'),
+    hooks: ['$l1>tunnel1.twist*0.6', '$l2>pattern1.thick*0.4', '$l3>rgbsplit1.amt*0.5', '$lx>warp1.amp*0.4', '$l4>colorize1.hue*0.5', '$l5>tunnel1.speed*0.4', '$env>pattern1.sx*0.2'],
+  },
+  lfoshapes: {
+    mods: [['shape1', { sides: 4, size: 0.2, ring: 0.04, spin: 0.2 }], ['shape2', { sides: 3, size: 0.3, ring: 0.06, spin: -0.15 }], ['blend1', { mode: 3 }], ['colorize1', { range: 0.6, hue: 0.8, full: 0.8 }],
+      ['trails1', { decay: 0.92 }], ['xform1', { zoom: 0.9 }], ['crt1', { scan: 0.3 }], 'vout1'],
+    conns: ['shape1.out>blend1.a', 'shape2.out>blend1.b', ...chain('blend1', 'colorize1', 'trails1', 'xform1', 'crt1', 'vout1')],
+    hooks: ['$l1>shape1.px*0.7', '$l2>shape1.py*0.7', '$l3>shape2.size*0.5', '$lx>shape2.px*0.8', '$l4>xform1.ang*0.3', '$l5>colorize1.hue*0.5', '$env>shape1.size*0.9'],
+  },
+  lforgb: {
+    mods: [['vosc1', { freq: 5, speed: 0.4 }], ['vosc2', { freq: 8, geom: 1, speed: -0.5, shape: 1 }], ['vosc3', { freq: 4, geom: 3, speed: 0.3 }], 'rgbcomb1', ['vnoise1', { kind: 1, scale: 3, speed: 0.4 }],
+      ['displace1', { dx: 0.05, dy: 0.05 }], ['mirror1', { mode: 2 }], 'vout1'],
+    conns: ['vosc1.out>rgbcomb1.a', 'vosc2.out>rgbcomb1.b', 'vosc3.out>rgbcomb1.c', 'rgbcomb1.out>displace1.a', 'vnoise1.out>displace1.b', ...chain('displace1', 'mirror1', 'vout1')],
+    hooks: ['$l1>vosc1.freq*0.4', '$l2>vosc2.ang*0.5', '$l3>vosc3.freq*0.4', '$lx>displace1.dx*0.4', '$l4>displace1.dy*0.4', '$l5>vosc2.freq*0.3', '$env>vosc1.speed*0.5'],
+  },
+  lfoworld: {
+    mods: [['plasma1', { scale: 3 }], ['vosc1', { geom: 3, freq: 5, speed: 0.3 }], ['colorize1', { range: 1, full: 0.3 }], ['world1', { morph: 1.5, disp: 1.5, sky: 0.25 }], ['glow1', { th: 0.5, amt: 0.6 }], 'vout1'],
+    conns: ['plasma1.out>world1.a', 'vosc1.out>colorize1.a', 'colorize1.out>world1.b', ...chain('world1', 'glow1', 'vout1')],
+    hooks: ['$l1>world1.morph*0.6', '$l2>world1.twist*0.5', '$l3>world1.size*0.3', '$lx>world1.disp*0.6', '$l4>plasma1.hue*0.5', '$l5>plasma1.scale*0.3', '$env>world1.gain*0.3'],
+  },
+  lfoscope: {
+    mods: [['ascope1', { gain: 1.4, thick: 0.7 }], ['spectrum1', { style: 1, gain: 1.3 }], 'blend1', ['feedback1', { zoom: 1.04, decay: 0.92, hsh: 0.02 }], 'hsv1', ['kaleid1', { segs: 6 }], 'vout1'],
+    conns: ['ascope1.out>blend1.a', 'spectrum1.out>blend1.b', ...chain('blend1', 'feedback1', 'hsv1', 'kaleid1', 'vout1')],
+    hooks: ['$sig>ascope1.sig', '$sig>spectrum1.sig', '$l1>feedback1.zoom*0.08', '$l2>feedback1.ang*0.12', '$l3>ascope1.gain*0.3', '$lx>hsv1.hue*0.5', '$l4>kaleid1.ang*0.4', '$l5>feedback1.hsh*0.15', '$env>hsv1.bri*0.3'],
+  },
+  lfoglitch: {
+    mods: [['voronoi1', { kind: 2, scale: 6 }], ['colorize1', { range: 0.7, hue: 0.3, full: 0.4 }], ['glitch1', { amt: 0.1 }], ['pixel1', { size: 6 }], ['crt1', { scan: 0.5, mask: 0.5 }], 'vout1'],
+    conns: chain('voronoi1', 'colorize1', 'glitch1', 'pixel1', 'crt1', 'vout1'),
+    hooks: ['$l1>voronoi1.scale*0.3', '$l2>colorize1.hue*0.5', '$l3>glitch1.amt*0.8', '$lx>pixel1.size*0.4', '$l4>colorize1.range*0.3', '$l5>crt1.noisy*0.4', '$env>glitch1.amt*0.6'],
+  },
+  lfojulia: {
+    mods: [['julia1', { cx: -0.78, cy: 0.16, zoom: 1.2 }], ['colorize1', { range: 1.5, hue: 0.6, full: 0.5 }], ['kaleid1', { segs: 4 }], ['feedback1', { zoom: 1.02, decay: 0.85 }], 'vout1'],
+    conns: chain('julia1', 'colorize1', 'kaleid1', 'feedback1', 'vout1'),
+    hooks: ['$l1>julia1.cx*0.15', '$l2>julia1.cy*0.15', '$l3>julia1.zoom*0.2', '$lx>julia1.ang*0.3', '$l4>colorize1.hue*0.5', '$l5>kaleid1.ang*0.4', '$env>colorize1.sat*0.3'],
+  },
   // ---- 3D worlds: a source chain feeds the splat cloud (a) and the sky (b) of World 3D
   worldplasma: {
     mods: [['plasma1', { scale: 3 }], ['vnoise1', { kind: 2, scale: 2, speed: 0.1 }], ['colorize1', { range: 1.2, hue: 0.6, full: 0.2 }], ['world1', { morph: 1, disp: 1.5 }], ['glow1', { th: 0.5, amt: 0.6 }], 'vout1'],
@@ -349,6 +425,23 @@ const COMBOS = [
   ['Heartbeat Rings', 'Beats', 'pulse', 'keyed', { shape1: { sides: 0, ring: 0.03, size: 0.15 }, trails1: { decay: 0.96 } }],
   ['Heartbeat Lava', 'Beats', 'pulse', 'lava'],
   ['Heartbeat Tunnel', 'Beats', 'pulse', 'tunnel', { tunnel1: { speed: 0.15 }, pattern1: { kind: 2 } }],
+
+  ['LFO Lab: Mandala Drive', 'Techno LFO lab', 'technolfo', 'lfomandala'],
+  ['LFO Lab: Tunnel Runner', 'Techno LFO lab', 'technolfo', 'lfotunnel', { clock1: { bpm: 132 } }],
+  ['LFO Lab: Orbiting Shapes', 'Techno LFO lab', 'technolfo', 'lfoshapes'],
+  ['LFO Lab: RGB Interference', 'Techno LFO lab', 'technolfo', 'lforgb', { lfo2: { rate: 3.2 }, seq1: { s2: 7, s4: 0, s7: 12 } }],
+  ['LFO Lab: Splat Planet (3D)', 'Techno LFO lab', 'technolfo', 'lfoworld'],
+  ['LFO Lab: Scope Bloom', 'Techno LFO lab', 'technolfo', 'lfoscope', { fm1: { ratio: 3 }, lfo1: { rate: 0.07 } }],
+  ['LFO Lab: Slow Burn', 'Techno LFO lab', 'technolfo', 'lfojulia', { clock1: { bpm: 122 }, lfo1: { rate: 0.04 }, lfo5: { rate: 0.02 }, ladder1: { res: 0.75 } }],
+  ['LFO Lab: Fast Flutter', 'Techno LFO lab', 'technolfo', 'lfoglitch', { clock1: { bpm: 140 }, lfo2: { rate: 6 }, lfo3: { rate: 18.6 }, lfo4: { rate: 2.4 } }],
+  ['LFO Loop: Feedback Pair Mandala', 'Techno LFO lab', 'technoloop', 'lfomandala'],
+  ['LFO Loop: Wavefold Tunnel', 'Techno LFO lab', 'technoloop', 'lfotunnel', { fold1: { gain: 2.4 } }],
+  ['LFO Loop: Glitch Cells', 'Techno LFO lab', 'technoloop', 'lfoglitch'],
+  ['LFO Loop: Julia Pump', 'Techno LFO lab', 'technoloop', 'lfojulia'],
+  ['LFO Loop: Shape Chase', 'Techno LFO lab', 'technoloop', 'lfoshapes', { clock1: { bpm: 128 }, lfo1: { rate: 0.5 }, lfo2: { rate: 1.3 } }],
+  ['LFO Loop: RGB Pan', 'Techno LFO lab', 'technoloop', 'lforgb'],
+  ['LFO Loop: Scope Storm', 'Techno LFO lab', 'technoloop', 'lfoscope', { lfo1: { rate: 1.1 }, lfo2: { rate: 2.7 }, lfo3: { rate: 9.07 } }],
+  ['LFO Loop: Splat Tunnel (3D)', 'Techno LFO lab', 'technoloop', 'lfoworld', { world1: { morph: 2.6 } }],
 
   ['FM Bells Kaleidoscope', 'Melodic', 'bells', 'kaleidnoise'],
   ['FM Bells Julia', 'Melodic', 'bells', 'julia'],
