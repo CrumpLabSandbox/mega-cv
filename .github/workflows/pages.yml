@@ -27,6 +27,13 @@ jobs:
           mkdir _site
           cp -r index.html manifest.webmanifest css js img _site/
           touch _site/.nojekyll
+      - name: Stamp the build so browsers never run a stale mix of files
+        run: |
+          V="${GITHUB_SHA::7}"
+          find _site/js -name '*.js' -exec sed -i -E "s#(from '|import ')(\\.{1,2}/[^']+\\.js)'#\\1\\2?v=$V'#g" {} +
+          sed -i -E "s#addModule\\('js/audio/worklet\\.js'\\)#addModule('js/audio/worklet.js?v=$V')#" _site/js/main.js
+          sed -i -E "s#(css/style\\.css|js/main\\.js)#\\1?v=$V#g; s#__BUILD__#$V#" _site/index.html
+          grep -c "?v=$V" _site/js/main.js _site/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

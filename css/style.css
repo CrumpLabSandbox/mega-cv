@@ -191,3 +191,8 @@ button, .k, .mx, .thumb, #hud { -webkit-touch-callout: none; }
   .hudhelp { font-size: 10.5px; padding: 0 12px; }
 }
 @media (orientation: portrait) and (max-width: 760px) { body.immersive #screen { object-fit: cover; } .hudhelp.touch::after { content: ' · rotate the phone for a wider view'; } }
+
+/* A held knob freezes all scrolling; on touch devices the document itself is pinned so iOS cannot drag or bounce the page. */
+body.knobbing #rack, body.knobbing #matrix { overflow: hidden !important; }
+@media (pointer: coarse) { html, body { position: fixed; inset: 0; width: 100%; overflow: hidden; } }
+#build { font-size: 10.5px !important; opacity: .6; }

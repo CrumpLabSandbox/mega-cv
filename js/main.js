@@ -134,5 +134,6 @@ $('go').onclick = async () => {
   try { await boot(); $('start').remove(); }
   catch (e) { console.error(e); $('err').textContent = 'Could not start: ' + e.message; $('go').disabled = false; }
 };
+if ($('build').textContent.includes('__')) $('build').textContent = 'local build';
 const count = d => [...registry.values()].filter(x => x.domain === d).length;
 $('counts').textContent = `${count('a')} audio modules · ${count('v')} video modules`;

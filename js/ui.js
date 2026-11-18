@@ -9,20 +9,25 @@ export function fmt(p, v) {
   return s + (p.unit ? ' ' + p.unit : '');
 }
 
+// While a knob is held, nothing on the page may scroll or rubber-band (iOS moves the whole page otherwise).
+document.addEventListener('touchmove', e => { if (document.body.classList.contains('knobbing')) e.preventDefault(); }, { passive: false });
+const holdKnob = on => document.body.classList.toggle('knobbing', on);
+
 function knob(p, inst, patch) {
   const el = h('div', 'k', `<div class="dial"><i></i></div><label>${p.label}</label><output></output>`);
   const ptr = el.querySelector('i'), out = el.querySelector('output');
   const show = () => { const v = inst.params[p.id]; ptr.style.transform = `rotate(${-135 + 270 * toNorm(p, v)}deg)`; out.textContent = fmt(p, v); };
   let y0 = null, n0;
-  el.onpointerdown = e => { el.setPointerCapture(e.pointerId); y0 = e.clientY; n0 = toNorm(p, inst.params[p.id]); el.classList.add('drag'); e.preventDefault(); };
+  el.onpointerdown = e => { holdKnob(true); try { el.setPointerCapture(e.pointerId); } catch { } y0 = e.clientY; n0 = toNorm(p, inst.params[p.id]); el.classList.add('drag'); e.preventDefault(); };
   el.onpointermove = e => { if (y0 == null) return; patch.setParam(inst, p.id, fromNorm(p, n0 + (y0 - e.clientY) / (e.shiftKey ? 1600 : 170))); show(); };
-  el.onpointerup = el.onpointercancel = () => { y0 = null; el.classList.remove('drag'); };
+  el.onpointerup = el.onpointercancel = () => { y0 = null; el.classList.remove('drag'); holdKnob(false); };
   el.ondblclick = () => { patch.setParam(inst, p.id, p.def); show(); };
   // Belt and braces for browsers that ignore touch-action: stop the touch from scrolling the rack.
   for (const ev of ['touchstart', 'touchmove']) el.addEventListener(ev, e => e.preventDefault(), { passive: false });
   let lastTap = 0; // double-tap to reset (dblclick does not fire once touch events are cancelled)
   let ty = 0, moved = false;
-  el.addEventListener('touchstart', e => { ty = e.touches[0].clientY; moved = false; }, { passive: true });
+  el.addEventListener('touchstart', e => { ty = e.touches[0].clientY; moved = false; holdKnob(true); }, { passive: true });
+  for (const ev of ['touchend', 'touchcancel']) el.addEventListener(ev, () => holdKnob(false));
   el.addEventListener('touchmove', e => { if (Math.abs(e.touches[0].clientY - ty) > 6) moved = true; }, { passive: true });
   el.addEventListener('touchend', () => {
     if (moved) { lastTap = 0; return; } // a drag is not a tap
