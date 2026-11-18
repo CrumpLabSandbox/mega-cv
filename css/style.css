@@ -150,7 +150,9 @@ body.vfull #fs:hover { opacity: 1; background: var(--a); border-color: var(--a);
 /* ---------- touch + phone */
 * { -webkit-tap-highlight-color: transparent; }
 html, body { overscroll-behavior: none; height: 100dvh; }
-button, .k, .mx, .thumb, #hud { touch-action: manipulation; -webkit-touch-callout: none; }
+button, .mx, .thumb { touch-action: manipulation; }
+button, .k, .mx, .thumb, #hud { -webkit-touch-callout: none; }
+.k, .k * { touch-action: none; } /* a knob drag must never scroll the page */
 .k, .mx, #hud, #bar { -webkit-user-select: none; user-select: none; }
 #hud { touch-action: none; }
 #joy, #hudud, .hudhelp.touch { display: none; }

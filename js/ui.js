@@ -18,6 +18,17 @@ function knob(p, inst, patch) {
   el.onpointermove = e => { if (y0 == null) return; patch.setParam(inst, p.id, fromNorm(p, n0 + (y0 - e.clientY) / (e.shiftKey ? 1600 : 170))); show(); };
   el.onpointerup = el.onpointercancel = () => { y0 = null; el.classList.remove('drag'); };
   el.ondblclick = () => { patch.setParam(inst, p.id, p.def); show(); };
+  // Belt and braces for browsers that ignore touch-action: stop the touch from scrolling the rack.
+  for (const ev of ['touchstart', 'touchmove']) el.addEventListener(ev, e => e.preventDefault(), { passive: false });
+  let lastTap = 0; // double-tap to reset (dblclick does not fire once touch events are cancelled)
+  let ty = 0, moved = false;
+  el.addEventListener('touchstart', e => { ty = e.touches[0].clientY; moved = false; }, { passive: true });
+  el.addEventListener('touchmove', e => { if (Math.abs(e.touches[0].clientY - ty) > 6) moved = true; }, { passive: true });
+  el.addEventListener('touchend', () => {
+    if (moved) { lastTap = 0; return; } // a drag is not a tap
+    const t = performance.now();
+    if (t - lastTap < 320) { patch.setParam(inst, p.id, p.def); show(); lastTap = 0; } else lastTap = t;
+  });
   el.title = `${p.label} — drag up/down, shift for fine, double-click to reset`;
   show();
   return el;
