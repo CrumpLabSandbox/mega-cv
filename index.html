@@ -2,7 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#15171d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MEGA·CV">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="img/icon.svg">
+<link rel="apple-touch-icon" href="img/icon-180.png">
 <title>MEGA·CV — modular audio + video synthesizer</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -43,7 +51,10 @@
         <div id="hudpin"></div>
         <div id="hudmsg"></div>
         <div id="hudscore"></div>
-        <div id="hudhelp">WASD fly &middot; Space / C up / down &middot; Shift fast &middot; click empty space to capture the mouse, or right-drag / arrows to look &middot; click a wall pin to patch &middot; fly into crystals to rewire &middot; Z undo &middot; F fullscreen &middot; Esc or X exit</div>
+        <div id="joy"><i></i></div>
+        <div id="hudud"><button id="hudup">&#9650;</button><button id="huddown">&#9660;</button></div>
+        <div class="hudhelp touch">Left stick: fly &middot; drag: look &middot; tap a wall pin to patch &middot; fly into crystals to rewire</div>
+        <div class="hudhelp desk">WASD fly &middot; Space / C up / down &middot; Shift fast &middot; click empty space to capture the mouse, or right-drag / arrows to look &middot; click a wall pin to patch &middot; fly into crystals to rewire &middot; Z undo &middot; F fullscreen &middot; Esc or X exit</div>
       </div>
     </div>
     <div id="mxbar">

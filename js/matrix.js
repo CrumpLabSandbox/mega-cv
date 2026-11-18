@@ -8,7 +8,16 @@ export class Matrix {
   constructor(el, patch, status, pop) {
     this.el = el; this.patch = patch; this.status = status; this.pop = pop;
     this.kind = 'a'; this.rows = []; this.cols = []; this.cells = []; this.hl = [];
-    el.addEventListener('click', e => { const td = e.target.closest('td'); if (td) this.toggle(td); });
+    el.addEventListener('click', e => { const td = e.target.closest('td'); if (!td) return; if (this.held) { this.held = false; return; } this.toggle(td); });
+    // Touch has no right-click: press and hold a patched pin to set its level.
+    let timer = 0;
+    const cancel = () => clearTimeout(timer);
+    el.addEventListener('pointerdown', e => {
+      const td = e.target.closest('td'); this.held = false; cancel();
+      if (!td || e.pointerType === 'mouse') return;
+      timer = setTimeout(() => { const c = this.connOf(td); if (c && c.type === 'a') { this.held = true; this.hover(td); this.openPop(td, c); } }, 480);
+    });
+    for (const ev of ['pointerup', 'pointercancel', 'pointermove', 'scroll']) el.addEventListener(ev, e => { if (ev !== 'pointermove' || Math.abs(e.movementX) + Math.abs(e.movementY) > 6) cancel(); }, { passive: true });
     el.addEventListener('mouseover', e => this.hover(e.target.closest('td')));
     el.addEventListener('mouseleave', () => this.hover(null));
     el.addEventListener('contextmenu', e => {
@@ -27,7 +36,7 @@ export class Matrix {
     }, { passive: false });
     pop.querySelector('input').addEventListener('input', e => { if (this.popConn) { patch.setAmt(this.popConn, +e.target.value); this.syncPop(); } });
     pop.addEventListener('click', e => { const v = e.target.dataset.v; if (v != null && this.popConn) { patch.setAmt(this.popConn, +v); this.syncPop(); } });
-    addEventListener('pointerdown', e => { if (!pop.hidden && !pop.contains(e.target)) pop.hidden = true; });
+    addEventListener('pointerdown', e => { if (!pop.hidden && !pop.contains(e.target) && !e.target.closest?.('td')) pop.hidden = true; });
   }
 
   setKind(k) { this.kind = k; this.el.classList.toggle('kv', k === 'v'); this.render(); this.hover(null); }
@@ -88,7 +97,7 @@ export class Matrix {
   }
   hover(td) {
     this.hl.forEach(e => e.classList.remove('hl')); this.hl = [];
-    if (!td) { this.status.textContent = this.kind === 'a' ? 'Click a pin to patch · right-click or shift+scroll a pin to set its level' : 'Click a pin to patch · one source per video input'; return; }
+    if (!td) { this.status.textContent = this.kind === 'a' ? (matchMedia('(pointer: coarse)').matches ? 'Tap a pin to patch · press and hold a pin to set its level' : 'Click a pin to patch · right-click or shift+scroll a pin to set its level') : 'Click a pin to patch · one source per video input'; return; }
     const [r, c] = this.ends(td), cn = this.connOf(td);
     this.hl = [this.rowHeads[+td.dataset.r], this.colHeads[+td.dataset.c]];
     this.hl.forEach(e => e.classList.add('hl'));

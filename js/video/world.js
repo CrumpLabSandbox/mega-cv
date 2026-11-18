@@ -195,10 +195,11 @@ export function initWorld({ patch, video, canvas, setRes }) {
     if (video.h < 540) setRes(960, 540);
     video.preview = null;
     syncLock(); lock();
-    say('Fly into crystals to rewire the synth. Aim at a wall pin and click to patch it.');
+    W.mouse = null;
+    say(matchMedia('(pointer: coarse)').matches ? 'Fly into crystals to rewire the synth. Tap a wall pin to patch it.' : 'Fly into crystals to rewire the synth. Aim at a wall pin and click to patch it.');
   }
   function exit() {
-    W.active = false; W.locked = false; W.keys.clear(); W.hover = null;
+    W.active = false; W.locked = false; W.keys.clear(); W.hover = null; W.joy = [0, 0]; touches.clear();
     document.body.classList.remove('immersive');
     if (document.pointerLockElement) document.exitPointerLock();
     if (document.fullscreenElement) document.exitFullscreen?.();
@@ -214,21 +215,74 @@ export function initWorld({ patch, video, canvas, setRes }) {
   document.addEventListener('pointerlockchange', syncLock);
 
   const look = (dx, dy) => { W.cam.yaw += dx * 0.0025; W.cam.pitch = Math.max(-1.5, Math.min(1.5, W.cam.pitch - dy * 0.0025)); };
-  addEventListener('mousemove', e => {
-    if (!W.active) return;
-    if (document.pointerLockElement || e.buttons & 2) look(e.movementX, e.movementY);
-    const r = canvas.getBoundingClientRect(), a = video.w / video.h, w = Math.min(r.width, r.height * a), h = w / a; // letterboxed picture
+  const setMouse = e => {
+    // The picture is letterboxed, except in portrait immersive mode where it is cropped to fill the screen.
+    const r = canvas.getBoundingClientRect(), a = video.w / video.h, fill = getComputedStyle(canvas).objectFit === 'cover';
+    const w = (fill ? Math.max : Math.min)(r.width, r.height * a), h = w / a;
     W.mouse = [(e.clientX - r.left - r.width / 2) / (w / 2), -(e.clientY - r.top - r.height / 2) / (h / 2)];
-  });
-  hud.addEventListener('contextmenu', e => e.preventDefault());
-  hud.addEventListener('mousedown', e => {
-    if (!W.active || e.button !== 0) return;
-    const h = W.hover;
-    if (!h) { if (!document.pointerLockElement) lock(); return; } // click empty space to capture the mouse
+  };
+  // Aim with the crosshair when the mouse is captured, otherwise with the cursor / last tap.
+  const aim = () => {
+    const inst = world();
+    if (!inst || inst.params.wall < 0.5) return (W.hover = null);
+    const B = basis(W.cam);
+    let ray = B.f;
+    if (!W.locked && W.mouse) {
+      const mx = W.mouse[0] * FOV * video.w / video.h, my = W.mouse[1] * FOV;
+      ray = [0, 1, 2].map(i => B.f[i] + B.r[i] * mx + B.u[i] * my);
+      const l = Math.hypot(...ray); ray = ray.map(x => x / l);
+    }
+    return (W.hover = pick(W.cam, ray));
+  };
+  const clickWorld = canLock => {
+    const h = aim();
+    if (!h) { if (canLock && !document.pointerLockElement) lock(); return; } // click empty space to capture the mouse
     const ex = connAt(patch, h.wall, h.r, h.c), row = h.wall.rows[h.r], col = h.wall.cols[h.c];
     if (ex) { patch.disconnect(ex); say('Unplugged: ' + label(h.wall, h.r, h.c)); }
     else { patch.connect(row.m.id, row.p.id, col.m.id, col.p.id, 1); say('Patched: ' + label(h.wall, h.r, h.c)); }
+  };
+  addEventListener('mousemove', e => {
+    if (!W.active) return;
+    if (document.pointerLockElement || e.buttons & 2) look(e.movementX, e.movementY);
+    setMouse(e);
   });
+  hud.addEventListener('contextmenu', e => e.preventDefault());
+
+  // Pointer input. Mouse: click = patch / capture. Touch: left stick flies, dragging looks, a tap patches the pin under the finger.
+  const touches = new Map(), joy = document.getElementById('joy'), stick = joy.firstElementChild;
+  W.joy = [0, 0];
+  const setJoy = e => {
+    const r = joy.getBoundingClientRect(), R = r.width / 2;
+    let x = (e.clientX - r.left - R) / R, y = (e.clientY - r.top - R) / R;
+    const l = Math.hypot(x, y); if (l > 1) { x /= l; y /= l; }
+    W.joy = [x, y]; stick.style.transform = `translate(${x * R * 0.6}px,${y * R * 0.6}px)`;
+  };
+  hud.addEventListener('pointerdown', e => {
+    if (!W.active || e.target.closest('button')) return;
+    if (e.pointerType === 'mouse') { if (e.button === 0) { setMouse(e); clickWorld(true); } return; }
+    e.preventDefault(); // also stops the browser from sending a duplicate mouse click
+    hud.setPointerCapture(e.pointerId);
+    const t = { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t: performance.now(), joy: !!e.target.closest('#joy') };
+    touches.set(e.pointerId, t);
+    if (t.joy) setJoy(e);
+  });
+  hud.addEventListener('pointermove', e => {
+    const t = touches.get(e.pointerId); if (!t) return;
+    if (t.joy) setJoy(e); else look((t.x - e.clientX) * 1.8, (t.y - e.clientY) * 1.8); // drag the world, like a map
+    t.x = e.clientX; t.y = e.clientY;
+  });
+  const endTouch = e => {
+    const t = touches.get(e.pointerId); if (!t) return;
+    touches.delete(e.pointerId);
+    if (t.joy) { W.joy = [0, 0]; stick.style.transform = ''; return; }
+    if (e.type === 'pointerup' && Math.hypot(e.clientX - t.x0, e.clientY - t.y0) < 10 && performance.now() - t.t < 450) { setMouse(e); clickWorld(false); }
+  };
+  hud.addEventListener('pointerup', endTouch); hud.addEventListener('pointercancel', endTouch);
+  for (const [id, key] of [['hudup', 'e'], ['huddown', 'c']]) {
+    const b = document.getElementById(id);
+    b.onpointerdown = e => { e.preventDefault(); W.keys.add(key); };
+    b.onpointerup = b.onpointercancel = b.onpointerleave = () => W.keys.delete(key);
+  }
   // Capture phase so flying with WASD does not also play the Keyboard module.
   addEventListener('keydown', e => {
     if (!W.active) return;
@@ -259,7 +313,7 @@ export function initWorld({ patch, video, canvas, setRes }) {
     const K = W.keys, B = basis(cam), v = W.vel;
     if (K.has('arrowleft')) cam.yaw -= dt * 1.6; if (K.has('arrowright')) cam.yaw += dt * 1.6;
     if (K.has('arrowup')) cam.pitch = Math.min(1.5, cam.pitch + dt * 1.2); if (K.has('arrowdown')) cam.pitch = Math.max(-1.5, cam.pitch - dt * 1.2);
-    const fw = (K.has('w') ? 1 : 0) - (K.has('s') ? 1 : 0), st = (K.has('d') ? 1 : 0) - (K.has('a') ? 1 : 0), up = (K.has(' ') || K.has('e') ? 1 : 0) - (K.has('c') || K.has('q') ? 1 : 0);
+    const fw = (K.has('w') ? 1 : 0) - (K.has('s') ? 1 : 0) - W.joy[1], st = (K.has('d') ? 1 : 0) - (K.has('a') ? 1 : 0) + W.joy[0], up = (K.has(' ') || K.has('e') ? 1 : 0) - (K.has('c') || K.has('q') ? 1 : 0);
     const sp = K.has('shift') ? 16 : 7, k = Math.min(1, dt * 6);
     for (let i = 0; i < 3; i++) {
       v[i] += ((B.f[i] * fw + B.r[i] * st + (i === 1 ? up : 0)) * sp - v[i]) * k;
@@ -267,13 +321,7 @@ export function initWorld({ patch, video, canvas, setRes }) {
     }
     cam.p[0] = Math.max(-WALLX + 1, Math.min(WALLX - 1, cam.p[0])); cam.p[1] = Math.max(-12, Math.min(12, cam.p[1])); cam.p[2] = Math.max(-40, Math.min(40, cam.p[2]));
 
-    let ray = B.f; // aim with the crosshair when the mouse is captured, otherwise with the cursor
-    if (!W.locked && W.mouse) {
-      const mx = W.mouse[0] * FOV * video.w / video.h, my = W.mouse[1] * FOV;
-      ray = [0, 1, 2].map(i => B.f[i] + B.r[i] * mx + B.u[i] * my);
-      const l = Math.hypot(...ray); ray = ray.map(x => x / l);
-    }
-    W.hover = inst.params.wall > 0.5 ? pick(cam, ray) : null;
+    aim();
     let near = null, nd = 7;
     for (const c of W.crystals) {
       if (!c.conn) c.conn = propose(patch);

@@ -13,6 +13,7 @@ const $ = id => document.getElementById(id);
 const STORE = 'mega-cv.patch';
 
 async function boot() {
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch { } // iOS: keep sounding with the ring switch on silent
   const ac = new AudioContext({ latencyHint: 'interactive' });
   await ac.audioWorklet.addModule('js/audio/worklet.js');
   const master = ac.createGain(), sink = ac.createGain();
@@ -106,6 +107,7 @@ async function boot() {
   });
   seg('view', v => { $('main').className = 'v-' + v; });
   seg('mxtab', k => matrix.setKind(k));
+  if (matchMedia('(max-width: 760px)').matches) $('view').querySelector('[data-v="rack"]').click(); // phones: one pane at a time
 
   // ---- initial patch
   let saved = null;

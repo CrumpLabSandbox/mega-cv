@@ -1,6 +1,6 @@
 :root {
   --bg: #0b0c10; --panel: #15171d; --panel2: #1c1f27; --line: #2a2e39; --text: #d7dbe3; --dim: #7d8594;
-  --a: #ffb400; --v: #00e5ff; --pin: var(--a);
+  --a: #ffb400; --v: #00e5ff; --pin: var(--a); --kw: 46px; --dial: 28px; --cell: 17px; --rmw: 84px; --rpw: 46px;
   font: 12px/1.35 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 * { box-sizing: border-box; }
@@ -43,11 +43,11 @@ h2.sec::before { content: ''; width: 8px; height: 8px; border-radius: 50%; backg
 .thumb { display: block; width: 100%; min-width: 128px; aspect-ratio: 16/9; background: #000; border-radius: 3px; margin-bottom: 6px; cursor: pointer; outline: 1px solid var(--line); }
 .thumb.on { outline: 2px solid var(--v); }
 .scope { display: block; border-radius: 3px; margin: 4px auto 0; }
-.knobs { display: grid; grid-template-columns: repeat(var(--cols), 46px); gap: 6px 2px; justify-content: center; }
+.knobs { display: grid; grid-template-columns: repeat(var(--cols), var(--kw)); gap: 6px 2px; justify-content: center; }
 .k { display: flex; flex-direction: column; align-items: center; cursor: ns-resize; user-select: none; touch-action: none; }
-.dial { width: 28px; height: 28px; border-radius: 50%; position: relative; background: radial-gradient(circle at 35% 30%, #3a3f4d, #20232c 70%); border: 1px solid #454b5a; box-shadow: 0 1px 2px #000a; }
-.dial i { position: absolute; left: 50%; top: 2px; width: 2px; height: 11px; margin-left: -1px; border-radius: 1px; background: var(--c); transform-origin: 50% 11px; }
-.k label, .k output { font-size: 9.5px; margin-top: 3px; white-space: nowrap; max-width: 46px; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+.dial { width: var(--dial); height: var(--dial); border-radius: 50%; position: relative; background: radial-gradient(circle at 35% 30%, #3a3f4d, #20232c 70%); border: 1px solid #454b5a; box-shadow: 0 1px 2px #000a; }
+.dial i { position: absolute; left: 50%; top: 2px; width: 2px; height: calc(var(--dial) / 2 - 3px); margin-left: -1px; border-radius: 1px; background: var(--c); transform-origin: 50% 100%; }
+.k label, .k output { font-size: 9.5px; margin-top: 3px; white-space: nowrap; max-width: var(--kw); overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
 .k label { color: var(--dim); } .k output { display: none; color: #fff; font-variant-numeric: tabular-nums; }
 .k:hover label, .k.drag label { display: none; } .k:hover output, .k.drag output { display: block; }
 .k.step .dial { box-shadow: 0 0 0 2px var(--c), 0 0 10px var(--c); }
@@ -68,20 +68,20 @@ h2.sec::before { content: ''; width: 8px; height: 8px; border-radius: 50%; backg
 table.mx { border-collapse: separate; border-spacing: 0; font-size: 10px; }
 .mx th { background: #12141a; font-weight: 500; color: var(--dim); white-space: nowrap; position: sticky; z-index: 2; }
 .mx thead tr:first-child th { top: 0; height: 74px; } .mx thead tr:nth-child(2) th { top: 74px; height: 50px; border-bottom: 1px solid var(--line); }
-.mx th.cm, .mx th.cp { vertical-align: bottom; padding: 3px 0; min-width: 17px; }
+.mx th.cm, .mx th.cp { vertical-align: bottom; padding: 3px 0; min-width: var(--cell); }
 .mx th.cm span, .mx th.cp span { writing-mode: vertical-rl; transform: rotate(180deg); display: inline-block; max-height: 68px; overflow: hidden; }
 .mx th.cm { color: var(--c); font-weight: 700; border-left: 1px solid var(--line); border-top: 2px solid var(--c); } .mx th.cp span { max-height: 46px; }
 .mx th.cp.g, .mx td.g { border-left: 1px solid var(--line); }
 .mx th.corner { left: 0; top: 0; z-index: 4; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); color: #555c6b; font-size: 9px; letter-spacing: .1em; }
 .mx th.corner span { display: block; }
-.mx th.rm { left: 0; z-index: 3; text-align: right; padding: 0 6px; width: 84px; min-width: 84px; max-width: 84px; overflow: hidden; text-overflow: ellipsis; color: var(--c); font-weight: 700; border-top: 1px solid var(--line); border-left: 2px solid var(--c); vertical-align: top; line-height: 17px; }
-.mx th.rp { left: 84px; z-index: 3; text-align: right; padding: 0 5px; width: 46px; min-width: 46px; max-width: 46px; overflow: hidden; text-overflow: ellipsis; border-right: 1px solid var(--line); }
+.mx th.rm { left: 0; z-index: 3; text-align: right; padding: 0 6px; width: var(--rmw); min-width: var(--rmw); max-width: var(--rmw); overflow: hidden; text-overflow: ellipsis; color: var(--c); font-weight: 700; border-top: 1px solid var(--line); border-left: 2px solid var(--c); vertical-align: top; line-height: var(--cell); }
+.mx th.rp { left: var(--rmw); z-index: 3; text-align: right; padding: 0 5px; width: var(--rpw); min-width: var(--rpw); max-width: var(--rpw); overflow: hidden; text-overflow: ellipsis; border-right: 1px solid var(--line); }
 .mx tr.g th.rp, .mx tr.g td { border-top: 1px solid var(--line); }
 .mx th.hl { color: #fff; background: #2a3040; }
-.mx td { width: 17px; height: 17px; min-width: 17px; padding: 0; position: relative; cursor: pointer; }
-.mx td::after { content: ''; position: absolute; inset: 6.5px; border-radius: 50%; background: #2a2e39; }
-.mx tbody tr:hover td { background: #171a21; } .mx td:hover { background: #2a3040 !important; } .mx td:hover::after { inset: 4px; background: #596177; }
-.mx td.on::after { inset: 2.5px; background: var(--pin); opacity: var(--o, 1); box-shadow: 0 0 6px var(--pin); }
+.mx td { width: var(--cell); height: var(--cell); min-width: var(--cell); padding: 0; position: relative; cursor: pointer; }
+.mx td::after { content: ''; position: absolute; inset: 38%; border-radius: 50%; background: #2a2e39; }
+.mx tbody tr:hover td { background: #171a21; } .mx td:hover { background: #2a3040 !important; } .mx td:hover::after { inset: 24%; background: #596177; }
+.mx td.on::after { inset: 15%; background: var(--pin); opacity: var(--o, 1); box-shadow: 0 0 6px var(--pin); }
 .mx td.on.neg::after { background: #ff4d8d; box-shadow: 0 0 6px #ff4d8d; }
 #matrix.kv { --pin: var(--v); }
 
@@ -120,7 +120,7 @@ body.immersive #fs { display: none; }
 #hudpin.on { color: #fff; font-weight: 700; font-size: 15px; }
 #hudmsg { position: absolute; left: 0; right: 0; top: 14%; text-align: center; font-size: 17px; font-weight: 700; color: var(--a); }
 #hudscore { position: absolute; right: 18px; top: 14px; color: var(--v); font-weight: 700; }
-#hudhelp { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; color: #aab1bf; font-size: 11.5px; }
+.hudhelp { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; color: #aab1bf; font-size: 11.5px; }
 #hudexit { position: absolute; left: 14px; top: 12px; cursor: pointer; background: #000a; border-color: #fff6; color: #fff; font-size: 12px; padding: 5px 12px; }
 #hudexit:hover { background: var(--a); border-color: var(--a); color: #111; }
 #hud.free .cross { display: none; }
@@ -146,3 +146,46 @@ body.vfull #fs:hover { opacity: 1; background: var(--a); border-color: var(--a);
 #chatkey p { margin: 0; font-size: 12px; line-height: 1.45; } #chatkey .dim { color: var(--dim); font-size: 11px; } #chatkey label { font-size: 11px; color: var(--dim); display: flex; gap: 6px; align-items: flex-start; }
 #chatkey code { color: #c9b06a; } #chatkeyinput, #chatinput { font: inherit; font-size: 13px; color: var(--text); background: #0b0d10; border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; resize: none; }
 #chatform .row { display: flex; align-items: center; gap: 6px; } #chatusage { color: var(--dim); font-size: 10.5px; } #chatforget { font-size: 11px; padding: 3px 8px; }
+
+/* ---------- touch + phone */
+* { -webkit-tap-highlight-color: transparent; }
+html, body { overscroll-behavior: none; height: 100dvh; }
+button, .k, .mx, .thumb, #hud { touch-action: manipulation; -webkit-touch-callout: none; }
+.k, .mx, #hud, #bar { -webkit-user-select: none; user-select: none; }
+#hud { touch-action: none; }
+#joy, #hudud, .hudhelp.touch { display: none; }
+#joy { position: absolute; left: max(22px, env(safe-area-inset-left)); bottom: max(28px, env(safe-area-inset-bottom)); width: 120px; height: 120px; border-radius: 50%; border: 2px solid #fff5; background: #0005; }
+#joy i { position: absolute; left: 50%; top: 50%; width: 50px; height: 50px; margin: -25px; border-radius: 50%; background: #fff8; pointer-events: none; }
+#hudud { position: absolute; right: max(22px, env(safe-area-inset-right)); bottom: max(28px, env(safe-area-inset-bottom)); flex-direction: column; gap: 10px; }
+#hudud button { width: 56px; height: 56px; border-radius: 50%; background: #0006; border: 2px solid #fff5; color: #fff; font-size: 18px; }
+
+@media (pointer: coarse) {
+  :root { --kw: 60px; --dial: 40px; --cell: 30px; --rmw: 64px; --rpw: 44px; }
+  select, input, textarea, #chatinput, #chatkeyinput, .others select, .others .txt { font-size: 16px !important; } /* below 16px iOS zooms the page on focus */
+  button { padding: 7px 12px; } .others button { font-size: 12px; padding: 7px 10px; } .mod .x { font-size: 20px; padding: 2px 8px; }
+  .k label, .k output { font-size: 10.5px; } .knobs { gap: 10px 2px; }
+  .mx th.rm { font-size: 9.5px; padding: 0 3px; white-space: normal; overflow-wrap: anywhere; line-height: 1.15; } .mx th { font-size: 10.5px; }
+  #pinpop { width: min(300px, 94vw); } #pinpop button { padding: 8px 0; font-size: 13px; } #pinpop input { height: 32px; }
+  #menu .grp button { font-size: 13px; padding: 7px 11px; }
+  body.immersive #joy { display: block; } body.immersive #hudud { display: flex; }
+  .hudhelp.desk { display: none; } .hudhelp.touch { display: block; bottom: auto; top: 46px; }
+  #hud .cross { display: none; }
+}
+
+@media (max-width: 760px) {
+  #bar { height: 50px; overflow-x: auto; overflow-y: hidden; gap: 6px; padding: 0 max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left)); scrollbar-width: none; }
+  #bar::-webkit-scrollbar { display: none; } #bar > * { flex: 0 0 auto; } #bar .sp { display: none; } #bar select#presets { max-width: 150px; }
+  .logo { font-size: 13px; margin-right: 2px; } #view [data-v="split"] { display: none; }
+  .logo { order: -3; } #view { order: -2; } /* Rack / Matrix switch first, so it is always in reach */
+  #main, #main.v-split { height: calc(100dvh - 50px); flex-direction: column; }
+  #side { order: -1; border-left: 0; flex: 0 0 auto !important; min-height: 0; } #main.v-matrix #side { flex: 1 1 auto !important; }
+  #monitor { max-height: 32dvh; } .v-matrix #monitor { max-height: 24dvh; } #screen { width: auto; }
+  .v-rack #mxbar, .v-rack #matrix, .v-split #mxbar, .v-split #matrix { display: none; }
+  #rack { flex: 1 1 auto; padding: 0 8px calc(30px + env(safe-area-inset-bottom)); }
+  .mods { justify-content: center; } #mxbar { flex-wrap: wrap; gap: 4px 10px; } #mxstatus { white-space: normal; font-size: 11px; flex: 1 1 100%; }
+  #menu { left: 6px; right: 6px; top: 54px; flex-direction: column; gap: 10px; max-height: calc(100dvh - 62px); } #menu .col { width: auto; }
+  #chat { top: 50px; width: 100vw; border-left: 0; padding-bottom: env(safe-area-inset-bottom); }
+  #start h1 { font-size: 34px; } #hudmsg { font-size: 14px; top: 20%; padding: 0 12px; } #hudpin { font-size: 12px; padding: 0 10px; }
+  .hudhelp { font-size: 10.5px; padding: 0 12px; }
+}
+@media (orientation: portrait) and (max-width: 760px) { body.immersive #screen { object-fit: cover; } .hudhelp.touch::after { content: ' · rotate the phone for a wider view'; } }

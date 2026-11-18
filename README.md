@@ -73,6 +73,17 @@ panel reverts its last change.
   ports or parameters are reported back to it so it can correct them.
 - Code: `js/assistant.js` (plain `fetch`, no SDK, to keep the site dependency-free).
 
+## Phones and tablets
+
+The layout adapts below 760px wide: the monitor stays on top and the toolbar's **Rack / Matrix** switch chooses what is
+under it. Knobs and matrix pins are finger-sized on touch screens.
+
+- Drag a knob up or down; double-tap to reset. Tap a pin to patch; **press and hold** a patched pin to set its level.
+- Immersive mode shows a left stick to fly, up / down buttons, drag to look, and tap a wall pin to patch.
+- *Add to Home Screen* installs it as a full-screen app with its own icon.
+- iOS notes: audio starts on the **Start** tap and keeps playing with the ring switch on silent (iOS 16.4+);
+  Screen Capture is not available on iOS, and Camera / Audio In ask for permission the first time.
+
 ## Live video sources
 
 - **Web Page** — type a URL and press Enter. The page's HTML is fetched, its stylesheets and images are inlined, and it is

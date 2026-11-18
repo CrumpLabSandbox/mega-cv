@@ -11,7 +11,7 @@ import path from 'node:path';
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PORT = +process.argv[2] || +process.env.PORT || 8931;
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
-  '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.webm': 'video/webm', '.mp4': 'video/mp4', '.ico': 'image/x-icon' };
+  '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.webm': 'video/webm', '.mp4': 'video/mp4', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json' };
 
 async function proxy(req, res, target) {
   if (!/^https?:\/\//i.test(target || '')) { res.writeHead(400, { 'x-mega-proxy': '1' }).end('Bad url'); return; }
