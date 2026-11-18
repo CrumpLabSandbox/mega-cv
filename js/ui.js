@@ -72,7 +72,9 @@ export class Rack {
     const knobs = h('div', 'knobs'), others = h('div', 'others');
     const nk = def.params.filter(p => p.type === 'knob').length;
     knobs.style.setProperty('--cols', def.cols || Math.min(Math.max(nk, isV ? 3 : 2), 4));
-    for (const p of def.params) (p.type === 'knob' ? knobs : others).append(control(p, inst, this.patch));
+    const build = () => { knobs.textContent = ''; others.textContent = ''; for (const p of def.params) (p.type === 'knob' ? knobs : others).append(control(p, inst, this.patch)); };
+    build();
+    el.addEventListener('refresh', () => { build(); def.ui && inst.type === 'seq' && def.ui(knobs, inst); });
     if (nk) el.append(knobs);
     if (others.children.length) el.append(others);
     if (def.status) el.append(inst.sayEl = h('div', 'status', inst.status || ''));

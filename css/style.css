@@ -131,3 +131,18 @@ body.vfull #monitor { position: fixed; inset: 0; z-index: 40; max-height: none; 
 body.vfull #screen { width: 100%; height: 100%; max-width: none; max-height: none; }
 body.vfull #fs { opacity: .75; z-index: 2; background: #000a; border-color: #fff6; color: #fff; padding: 5px 12px; }
 body.vfull #fs:hover { opacity: 1; background: var(--a); border-color: var(--a); color: #111; }
+
+/* ---------- patch assistant */
+#chat { position: fixed; right: 0; top: 44px; bottom: 0; width: min(420px, 100vw); z-index: 35; background: var(--panel); border-left: 1px solid #454b5a; display: flex; flex-direction: column; box-shadow: -12px 0 40px #000a; }
+#chat .chathead { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--line); } #chat .chathead b { color: var(--a); white-space: nowrap; }
+#chat .chathead select { min-width: 0; padding: 2px 4px; font-size: 11px; } #chat .chathead button { padding: 2px 8px; font-size: 11px; } #chat button:disabled { opacity: .4; cursor: default; }
+#chatlog { flex: 1; overflow: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 1.45; }
+.msg { white-space: pre-wrap; overflow-wrap: anywhere; padding: 8px 10px; border-radius: 8px; max-width: 94%; }
+.msg.user { align-self: flex-end; background: #2b3140; } .msg.bot { align-self: flex-start; background: var(--panel2); border: 1px solid var(--line); }
+.msg.note { align-self: center; color: var(--dim); font-size: 12px; text-align: center; padding: 2px 8px; } .msg.busy { color: var(--a); }
+.msg.tool { align-self: flex-start; color: #5dd39e; font-size: 12px; padding: 2px 8px; border-left: 2px solid #5dd39e; border-radius: 0; }
+.msg.err { align-self: stretch; max-width: none; background: #3a1418; border: 1px solid #7a2a32; color: #ffb3b9; font-size: 12px; }
+#chatkey, #chatform { border-top: 1px solid var(--line); padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+#chatkey p { margin: 0; font-size: 12px; line-height: 1.45; } #chatkey .dim { color: var(--dim); font-size: 11px; } #chatkey label { font-size: 11px; color: var(--dim); display: flex; gap: 6px; align-items: flex-start; }
+#chatkey code { color: #c9b06a; } #chatkeyinput, #chatinput { font: inherit; font-size: 13px; color: var(--text); background: #0b0d10; border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; resize: none; }
+#chatform .row { display: flex; align-items: center; gap: 6px; } #chatusage { color: var(--dim); font-size: 10.5px; } #chatforget { font-size: 11px; padding: 3px 8px; }

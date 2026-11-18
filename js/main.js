@@ -7,6 +7,7 @@ import { VideoEngine } from './video/engine.js';
 import { Rack, buildMenu } from './ui.js';
 import { Matrix } from './matrix.js';
 import { presets } from './presets.js';
+import { initAssistant } from './assistant.js';
 
 const $ = id => document.getElementById(id);
 const STORE = 'mega-cv.patch';
@@ -122,7 +123,8 @@ async function boot() {
     requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);
-  window.megacv = { ac, patch, video, registry, presets, load }; // handy in the console
+  const assistant = initAssistant({ patch, load });
+  window.megacv = { ac, patch, video, registry, presets, load, assistant }; // handy in the console
 }
 
 $('go').onclick = async () => {

@@ -58,6 +58,21 @@ Geometry: Transform, Kaleidoscope, Mirror, Scroll, Displace, Warp, Tunnel/Polar 
 FX: Feedback, Trails, Blur, Glow, Edges, Pixelate, RGB Split, CRT, Glitch, Halftone ·
 I/O: Video Probe, World 3D, Video Out
 
+## Patch assistant (bring your own API key)
+
+**Assistant** in the top bar opens a chat with Claude. Describe what you want — how many voices and LFOs, what should
+modulate what, the visuals, the mood — and it proposes a plan, then builds or edits the patch in place. **Undo** in the
+panel reverts its last change.
+
+- You enter your own Anthropic API key. Requests go directly from the page to `api.anthropic.com`; this site has no
+  server, and the key is sent nowhere else. By default it is kept only until the tab closes; tick *Remember* to store it
+  in this browser's `localStorage`.
+- Usage is billed to that key. Use a key made for this purpose with a spend limit, and remove it with *Forget key* on a
+  shared computer: anything that can run script on the page or read the browser profile can read a remembered key.
+- The model is told the full module catalog and has three tools: read the patch, replace it, and edit it. Invalid modules,
+  ports or parameters are reported back to it so it can correct them.
+- Code: `js/assistant.js` (plain `fetch`, no SDK, to keep the site dependency-free).
+
 ## Live video sources
 
 - **Web Page** — type a URL and press Enter. The page's HTML is fetched, its stylesheets and images are inlined, and it is
@@ -98,6 +113,7 @@ Press **Immersive** to go inside (a World 3D module is added and wired in front 
 | `server.mjs` | Local static server + page proxy |
 | `js/matrix.js` | Matrix patch bay |
 | `js/ui.js` | Rack panels, knobs, add-module menu |
+| `js/assistant.js` | Patch assistant: Claude API calls and patch-editing tools |
 | `js/presets.js` | Factory patches: audio beds × video chains |
 
 ### Adding a module

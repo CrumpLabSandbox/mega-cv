@@ -10,6 +10,7 @@
 <header id="bar">
   <div class="logo">MEGA<b>·CV</b></div>
   <button id="add" class="primary">+ Module</button>
+  <button id="assistant" title="Chat with Claude to plan and build patches (uses your own API key)">&#10022; Assistant</button>
   <select id="presets" title="Load a factory patch"></select>
   <button id="save" title="Download the patch as JSON">Save</button>
   <button id="load" title="Load a patch JSON file">Load</button>
@@ -53,6 +54,28 @@
   </section>
 </main>
 
+<aside id="chat" hidden>
+  <div class="chathead">
+    <b>&#10022; Patch assistant</b>
+    <select id="chatmodel" title="Which Claude model to use"></select>
+    <span class="sp"></span>
+    <button id="chatundo" title="Undo the last change the assistant made to the patch" disabled>Undo</button>
+    <button id="chatnew" title="Start a new conversation">New</button>
+    <button id="chatclose" title="Close">&times;</button>
+  </div>
+  <div id="chatlog"></div>
+  <div id="chatkey">
+    <p><b>Enter your Anthropic API key</b> to chat. It goes straight from this page to <code>api.anthropic.com</code> and nowhere else; this site has no server.</p>
+    <input id="chatkeyinput" type="password" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
+    <label><input id="chatkeyremember" type="checkbox"> Remember on this device (otherwise it is forgotten when the tab closes)</label>
+    <button id="chatkeysave" class="primary">Use this key</button>
+    <p class="dim">Usage is billed to your key. Prefer a key made just for this, with a spend limit, from <code>console.anthropic.com</code>. Anyone who can use this browser profile could read a remembered key.</p>
+  </div>
+  <div id="chatform">
+    <textarea id="chatinput" rows="3" placeholder="Describe the patch you want…"></textarea>
+    <div class="row"><span id="chatusage"></span><span class="sp"></span><button id="chatforget" title="Remove the API key from this browser">Forget key</button><button id="chatsend" class="primary">Send</button></div>
+  </div>
+</aside>
 <div id="menu" hidden></div>
 <div id="pinpop" hidden>
   <div class="t"></div>
