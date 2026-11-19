@@ -389,3 +389,32 @@ reg('euclid', 'steps pulses rot', s => { s.i = -1; s.lc = 0; s.lr = 0; }, (s, I,
     O[0][i] = hit && ck[i] > 0.5 ? 1 : 0;
   }
 });
+
+// Pencil Tracer: loops a stretch of a drawing's pen path. The path arrives from the main thread as evenly spaced points.
+reg('ptrace', 'freq span pos drift gain pp', s => {
+  s.ph = 0; s.d = 0; s.n = 0; s.lr = 0; s.sy = 0; s.px = 0; s.py = 0; s.hx = 0; s.hy = 0;
+  s.port.onmessage = e => { const m = e.data; s.X = m.x; s.Y = m.y; s.A = m.a; s.step = m.step; s.jump = m.jump; s.n = m.x.length; s.d = 0; };
+}, (s, I, O, P, n) => {
+  const N = s.n;
+  if (N < 4) { for (const o of O) o.fill(0); return; }
+  const vo = I[0], pc = I[1], sc = I[2], rs = I[3], X = s.X, Y = s.Y, A = s.A, pp = P.pp > 0.5, dd = P.drift / SR / s.step;
+  for (let i = 0; i < n; i++) {
+    if (rs[i] > 0.5 && s.lr <= 0.5) { s.ph = 0; s.d = 0; }
+    s.lr = rs[i];
+    s.ph += P.freq * (vo[i] ? Math.pow(2, vo[i]) : 1) / SR;
+    if (s.ph >= 1) { s.ph -= Math.floor(s.ph); s.sy = 64; }
+    s.d += dd; if (s.d >= N) s.d -= N; else if (s.d < 0) s.d += N;
+    const W = clamp(P.span * (sc[i] ? Math.pow(2, sc[i] * 4) : 1) / s.step, 1, N - 1);
+    let q = (P.pos + pc[i]) * (N - 1) + s.d + (pp ? 1 - Math.abs(2 * s.ph - 1) : s.ph) * W;
+    q %= N; if (q < 0) q += N;
+    const j = q | 0, j1 = j + 1 < N ? j + 1 : 0;
+    let x = X[j], y = Y[j];
+    const dx = X[j1] - x, dy = Y[j1] - y;
+    if (dx * dx + dy * dy < s.jump) { x += dx * (q - j); y += dy * (q - j); } // never glide across a pen lift
+    O[0][i] = x; O[1][i] = y;
+    s.hx = x - s.px + 0.9993 * s.hx; s.px = x; s.hy = y - s.py + 0.9993 * s.hy; s.py = y; // remove the offset of where on the page we are
+    O[2][i] = Math.tanh(s.hx * P.gain); O[3][i] = Math.tanh(s.hy * P.gain);
+    O[4][i] = A[j];
+    O[5][i] = s.sy > 0 ? (s.sy--, 1) : 0;
+  }
+});

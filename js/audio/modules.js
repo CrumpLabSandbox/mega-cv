@@ -7,7 +7,7 @@ const base = (type, name, cat, o) => ({
   params: o.params || [], ins: ports(o.ins || [], 'a'), outs: ports(o.outs || [], 'a'),
 });
 
-function wk(type, name, cat, o) {
+export function wk(type, name, cat, o) {
   const def = base(type, name, cat, o);
   def.create = ac => {
     const node = new AudioWorkletNode(ac, type, {

@@ -1,5 +1,6 @@
 import './audio/modules.js';
 import './video/modules.js';
+import './pencil.js';
 import { initWorld } from './video/world.js';
 import { registry } from './defs.js';
 import { Patch } from './patch.js';

@@ -400,6 +400,29 @@ const VID = {
     conns: chain('screen1', 'edge1', 'glow1', 'hsv1', 'vout1'),
     hooks: ['$env>edge1.gain*0.3', '$lfo>hsv1.hue*0.5'],
   },
+  // ---- Pencil notebooks as the picture
+  pencilneon: {
+    mods: [['pencil1', { speed: 900, fade: 0.1, thick: 2.2 }], ['colorize1', { range: 0.25, hue: 0.5, sat: 0.9, cycle: 0.04 }], ['glow1', { th: 0.25, rad: 14, amt: 1.2 }], 'vout1'],
+    conns: chain('pencil1', 'colorize1', 'glow1', 'vout1'),
+    hooks: ['$env>pencil1.speed*0.6', '$lfo>colorize1.hue*0.3', '$cv2>pencil1.zoom*0.15'],
+  },
+  pencilkaleid: {
+    mods: [['pencil1', { book: 2, page: 5, speed: 700, zoom: 3, follow: 1, thick: 2 }], ['kaleid1', { segs: 8, spin: 0.015 }], ['feedback1', { zoom: 1.03, decay: 0.86, hsh: 0.02 }],
+      ['colorize1', { range: 0.5, hue: 0.08, cycle: 0.03 }], 'vout1'],
+    conns: chain('pencil1', 'kaleid1', 'feedback1', 'colorize1', 'vout1'),
+    hooks: ['$env>pencil1.speed*0.7', '$lfo>kaleid1.ang*0.2', '$cv2>feedback1.ang*0.1'],
+  },
+  pencilpaper: {
+    mods: [['pencil1', { book: 1, page: 3, speed: 500, zoom: 2.6, follow: 1, ink: 1 }], ['crt1', { scan: 0.12, curve: 0.12 }], 'vout1'],
+    conns: chain('pencil1', 'crt1', 'vout1'),
+    hooks: ['$env>pencil1.speed*0.7', '$lfo>pencil1.zoom*0.25'],
+  },
+  pencilworld: {
+    mods: [['pencil1', { book: 2, page: 9, speed: 1500, thick: 3 }], ['plasma1', { scale: 1.5, speed: 0.15 }], ['colorize1', { range: 0.5, hue: 0.6, cycle: 0.02 }],
+      ['world1', { morph: 1.4, disp: 1.6, size: 2.2, spin: 0.04, sky: 0.25 }], ['glow1', { th: 0.4, amt: 0.7 }], 'vout1'],
+    conns: ['pencil1.out>world1.a', 'plasma1.out>colorize1.a', 'colorize1.out>world1.b', ...chain('world1', 'glow1', 'vout1')],
+    hooks: ['$env>world1.disp*0.4', '$lfo>world1.morph*0.4', '$cv2>pencil1.speed*0.5'],
+  },
 };
 
 // [name, group, audio bed, video chain, param tweaks { modId: { param: value } }]
@@ -483,6 +506,13 @@ const COMBOS = [
   ['Keyboard Spectrum Bars', 'Playable (keys A–L)', 'keys', 'bars'],
   ['Keyboard Lissajous', 'Playable (keys A–L)', 'keys', 'lissajous'],
 
+  ['Pencil Neon + Acid', 'Pencil drawings', 'acid', 'pencilneon'],
+  ['Pencil Kaleidoscope + Techno', 'Pencil drawings', 'techno', 'pencilkaleid'],
+  ['Pencil on Paper + Bells', 'Pencil drawings', 'bells', 'pencilpaper'],
+  ['Pencil Planet + Drone (3D)', 'Pencil drawings', 'drone', 'pencilworld'],
+  ['Pencil Kaleidoscope + LFO Lab', 'Pencil drawings', 'technolfo', 'pencilkaleid'],
+  ['Silent Pencil', 'Pencil drawings', 'silent', 'pencilpaper', { pencil1: { zoom: 1, follow: 0, speed: 300 } }],
+
   ['Silent Julia Drift', 'Video only', 'silent', 'julia'],
   ['Silent Life', 'Video only', 'silent', 'life'],
   ['Silent Voronoi', 'Video only', 'silent', 'cells'],
@@ -529,8 +559,54 @@ const LIFE = {
     'vco1.tri>mixer1.a', 'vco2.saw>mixer1.b', 'mixer1.out>svf1.in', 'vfollow1.luma>svf1.cv*2', 'svf1.lp>reverb1.in', 'reverb1.l>out1.l', 'reverb1.r>out1.r'].map(parseConn),
 };
 
+// Pencil patches where the drawing itself makes the sound.
+const PENCIL = [
+  { // the pen's height picks the note, each new stroke plucks it, pressure opens the filter
+    name: 'Pencil Plays the Synth', group: 'Pencil drawings',
+    mods: [['pencil1', { book: 1, page: 7, speed: 140, fade: 0.05, thick: 2.4, zoom: 1.25 }], ['colorize1', { range: 0.2, hue: 0.12, cycle: 0.02 }], ['glow1', { th: 0.2, amt: 1.3 }], 'vout1',
+      ['quant1', { scale: 4 }], ['pluck1', { freq: 220, decay: 0.85 }], ['vco1', { freq: 110 }], ['slew1', { rise: 0.02, fall: 0.25 }], 'vca1', ['mixer1', { la: 0.9, lb: 0.35 }],
+      ['svf1', { cut: 500, res: 0.4, cva: 4 }], ['delay1', { time: 0.33, fb: 0.5, mix: 0.3 }], ['reverb1', { size: 0.85, mix: 0.4 }], ['out1', { vol: 0.6 }]],
+    conns: [...chain('pencil1', 'colorize1', 'glow1', 'vout1'), 'pencil1.y>quant1.in*1.5', 'quant1.out>pluck1.voct', 'quant1.out>vco1.voct', 'pencil1.strk>pluck1.trig',
+      'pencil1.down>slew1.in', 'slew1.out>vca1.cv', 'vco1.tri>vca1.in', 'pluck1.out>mixer1.a', 'vca1.out>mixer1.b', 'mixer1.out>svf1.in', 'pencil1.pr>svf1.cv*0.8', 'pencil1.x>delay1.tcv*0.5',
+      'svf1.lp>delay1.in', 'delay1.out>reverb1.in', 'reverb1.l>out1.l', 'reverb1.r>out1.r', 'pencil1.x>colorize1.hue*0.4'],
+  },
+  { // the stretch of line under the pen, looped at audio rate: you hear the shape being drawn and see it on the scope
+    name: 'Pencil Wavetable (audio rate)', group: 'Pencil drawings',
+    mods: [['pencil1', { book: 2, page: 5, speed: 90, thick: 2 }], ['ptrace1', { book: 2, page: 5, freq: 55, span: 140, drift: 0, gain: 9 }], ['xyscope1', { gain: 1, decay: 0.75, thick: 0.35, hue: 0.45 }],
+      ['blend1', { mode: 2 }], ['glow1', { th: 0.3, amt: 1 }], 'vout1', ['lfo1', { rate: 0.05 }], ['svf1', { cut: 1800, res: 0.2 }], ['svf2', { cut: 1800, res: 0.2 }], ['reverb1', { size: 0.8, mix: 0.25 }], ['out1', { vol: 0.5 }]],
+    conns: ['pencil1.out>blend1.a', 'xyscope1.out>blend1.b', ...chain('blend1', 'glow1', 'vout1'), 'pencil1.prog>ptrace1.pos', 'ptrace1.x>xyscope1.x', 'ptrace1.y>xyscope1.y',
+      'lfo1.sin>ptrace1.span*0.2', 'lfo1.tri>xyscope1.hue*0.3', 'ptrace1.ax>svf1.in', 'ptrace1.ay>svf2.in', 'svf1.lp>out1.l*0.6', 'svf2.lp>out1.r*0.6', 'ptrace1.ax>reverb1.in*0.3', 'reverb1.l>out1.l', 'reverb1.r>out1.r'],
+  },
+  { // a bass line whose oscillator is a doodle; the sequencer plays it and the window drifts along the page
+    name: 'Pencil Tracer Bass Line', group: 'Pencil drawings',
+    mods: [['clock1', { bpm: 124 }], ['seq1', { s0: 0, s1: 0, s2: 12, s3: 0, s4: 3, s5: 0, s6: 7, s7: 10 }], ['ptrace1', { book: 0, page: 6, freq: 55, span: 60, drift: 12, gain: 14 }],
+      ['adsr1', { a: 0.003, d: 0.18, s: 0.2, r: 0.1 }], ['ladder1', { cut: 500, res: 0.5, cva: 4 }], 'vca1', 'kick1', ['mixer1', { la: 0.7, lb: 0.9 }], ['lfo1', { rate: 0.08 }], ['out1', { vol: 0.6 }],
+      ['xyscope1', { gain: 1, decay: 0.85, thick: 0.4, hue: 0.9 }], ['feedback1', { zoom: 1.02, decay: 0.8, hsh: 0.03 }], ['glow1', { th: 0.3, amt: 1 }], 'vout1'],
+    conns: ['clock1.s16>seq1.clock', 'seq1.cv>ptrace1.voct', 'clock1.s16>adsr1.gate', 'ptrace1.ax>ladder1.in', 'adsr1.env>ladder1.cv*0.6', 'lfo1.sin>ladder1.cv*0.3', 'ladder1.out>vca1.in', 'adsr1.env>vca1.cv',
+      'vca1.out>mixer1.a', 'clock1.s4>kick1.trig', 'kick1.out>mixer1.b', 'mixer1.out>out1.in', 'lfo1.tri>ptrace1.span*0.25',
+      'ptrace1.x>xyscope1.x', 'ptrace1.y>xyscope1.y', ...chain('xyscope1', 'feedback1', 'glow1', 'vout1'), 'adsr1.env>xyscope1.gain*0.2', 'lfo1.sin>feedback1.ang*0.1'],
+  },
+  { // play the drawing from the computer keyboard
+    name: 'Keyboard Pencil Tracer', group: 'Pencil drawings',
+    mods: ['keys1', ['ptrace1', { book: 2, page: 12, freq: 130.81, span: 90, drift: 6, gain: 10 }], ['adsr1', { a: 0.01, d: 0.3, s: 0.6, r: 0.6 }], 'vca1', 'vca2', ['lfo1', { rate: 0.1 }],
+      ['reverb1', { size: 0.85, mix: 0.3 }], ['out1', { vol: 0.5 }], ['xyscope1', { gain: 1, decay: 0.9, thick: 0.4, hue: 0.55 }], ['glow1', { th: 0.3, amt: 1.2 }], 'vout1'],
+    conns: ['keys1.cv>ptrace1.voct', 'keys1.gate>adsr1.gate', 'ptrace1.ax>vca1.in', 'ptrace1.ay>vca2.in', 'adsr1.env>vca1.cv', 'adsr1.env>vca2.cv', 'vca1.out>out1.l*0.6', 'vca2.out>out1.r*0.6',
+      'vca1.out>reverb1.in*0.5', 'reverb1.l>out1.l', 'reverb1.r>out1.r', 'lfo1.sin>ptrace1.span*0.2', 'ptrace1.x>xyscope1.x', 'ptrace1.y>xyscope1.y', ...chain('xyscope1', 'glow1', 'vout1'), 'adsr1.env>xyscope1.hue*0.3'],
+  },
+  { // two tracers on different pages, a few cents apart, sliding slowly through their drawings
+    name: 'Two Pencil Drone', group: 'Pencil drawings',
+    mods: [['ptrace1', { book: 0, page: 3, freq: 41.2, span: 260, drift: 8, gain: 7 }], ['ptrace2', { book: 2, page: 9, freq: 61.9, span: 180, drift: -5, gain: 7 }], ['chaos1', { rate: 0.2 }],
+      ['ladder1', { cut: 700, res: 0.3, cva: 3 }], ['ladder2', { cut: 900, res: 0.3, cva: 3 }], ['reverb1', { size: 0.93, mix: 0.5 }], ['out1', { vol: 0.5 }],
+      ['xyscope1', { gain: 1, decay: 0.92, thick: 0.3, hue: 0.6 }], ['xyscope2', { gain: 1, decay: 0.92, thick: 0.3, hue: 0.05 }], ['blend1', { mode: 2 }], ['feedback1', { zoom: 1.01, decay: 0.7 }], 'vout1'],
+    conns: ['ptrace1.ax>ladder1.in', 'ptrace2.ay>ladder2.in', 'chaos1.x>ladder1.cv*0.5', 'chaos1.y>ladder2.cv*0.5', 'chaos1.z>ptrace1.span*0.2', 'chaos1.x>ptrace2.span*0.2',
+      'ladder1.out>out1.l*0.5', 'ladder2.out>out1.r*0.5', 'ladder1.out>reverb1.in*0.5', 'ladder2.out>reverb1.in*0.5', 'reverb1.l>out1.l', 'reverb1.r>out1.r',
+      'ptrace1.x>xyscope1.x', 'ptrace1.y>xyscope1.y', 'ptrace2.x>xyscope2.x', 'ptrace2.y>xyscope2.y', 'xyscope1.out>blend1.a', 'xyscope2.out>blend1.b', ...chain('blend1', 'feedback1', 'vout1')],
+  },
+].map(p => ({ ...p, mods: p.mods.map(parseMod), conns: p.conns.map(parseConn) }));
+
 const built = COMBOS.map(combo);
 built.splice(built.findIndex(p => p.name === 'Wind Noise Clouds'), 0, LIFE);
+built.splice(built.findIndex(p => p.name === 'Silent Pencil') + 1, 0, ...PENCIL);
 
 export const presets = [
   ...built,

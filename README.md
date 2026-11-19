@@ -33,7 +33,7 @@ server (or the GitHub Pages copy) runs everything else, but there Web Page only 
 - **Video drives audio**: the *Video Probe* module turns the brightness / colour of a region into CV.
 - **Full screen** (top bar, the corner button on the monitor, or double-click the monitor): toggles the video to fill the screen; Esc also exits.
 - **Immersive** (top bar): fly inside the patch. See *World 3D* below.
-- **Presets**: about 100 factory patches, grouped by Beats / Techno LFO lab / Melodic / Ambient / 3D worlds / Playable / Video only / Live input.
+- **Presets**: about 110 factory patches, grouped by Beats / Techno LFO lab / Melodic / Ambient / 3D worlds / Playable / Pencil drawings / Video only / Live input.
   The *Techno LFO lab* patches run five LFOs that modulate the sound, the picture and each other (a ring-modulated "complex LFO", or a pair of LFOs driving each other's rate).
 - Patches autosave to `localStorage`; **Save / Load** use JSON files; **Rec** captures the monitor + audio to `.webm`.
 
@@ -41,8 +41,8 @@ Signal conventions: pitch CV is 1.0 per octave, gates and triggers are high abov
 
 ## Modules
 
-**Audio & CV (42)**
-Oscillators: VCO, FM Op, Harmonic, Pluck, Noise ·
+**Audio & CV (43)**
+Oscillators: VCO, FM Op, Harmonic, Pluck, Noise, Pencil Tracer ·
 Drums: Kick, Snare, Hi-Hat ·
 Filters: SVF, Ladder, EQ ·
 Effects: Wavefolder, Drive, Bitcrusher, Phaser, Reverb, Delay, Chorus, Compressor ·
@@ -51,8 +51,8 @@ Sequencing: Clock, Clock Divider, Sequencer, Euclid, Turing, Quantizer ·
 Utilities: VCA, Mixer, Ring Mod, Offset/Atten, Panner, Logic, Scope ·
 I/O: Keyboard (computer keys `A W S E D F T G Y H U J K O L P`, optional MIDI), Audio In, Audio Out
 
-**Video (47)**
-Sources: V-Osc, Ramp, V-Noise, Shape, Plasma, Pattern, Colour, Voronoi, Julia, Life, Blobs, Camera, Screen Capture, Web Page, Media File, Audio Scope, Spectrum, XY Scope ·
+**Video (48)**
+Sources: V-Osc, Ramp, V-Noise, Shape, Plasma, Pattern, Colour, Voronoi, Julia, Life, Blobs, Camera, Screen Capture, Web Page, Media File, Audio Scope, Spectrum, XY Scope, Pencil ·
 Mix: V-Mixer, Blend, Luma Key, Compare, RGB Combine, V-VCA ·
 Colour: Colorize, HSV Adjust, Levels ·
 Geometry: Transform, Kaleidoscope, Mirror, Scroll, Displace, Warp, Tunnel/Polar ·
@@ -96,6 +96,24 @@ under it. Knobs and matrix pins are finger-sized on touch screens.
   (maps, video players, another app) into the patch.
 - **Camera**, **Media File** (local image / video), **Audio In**.
 
+## Pencil drawings
+
+Two modules play the notebooks from the [Pencil](https://crumplabsandbox.github.io/pencil/) site, where each page is a
+drawing stored as pen strokes. Pages are fetched from that site when a module is added, so they need a network connection;
+new notebooks published there show up in the *Notebook* selector by themselves.
+
+- **Pencil** (video source) replays a page stroke by stroke. *Speed* is how fast the pen travels, in millimetres of line
+  per second, and takes CV. *Fade* lets old strokes die away like phosphor, *Follow pen* with *Zoom* keeps the camera on
+  the pen, and *Look* switches between white ink on black and pencil on paper. It ends each page with a trigger and can
+  turn to the next page by itself.
+  Its CV outputs are the pen: X, Y, pen down, pressure, a trigger on every new stroke, page end and progress through the
+  page. They update once per video frame, so they are for modulation and for playing notes, not for making tone.
+- **Pencil Tracer** (oscillator) is the audio-rate version. It takes a stretch of the page's line (*Span*, in millimetres)
+  and runs along it *Freq* times a second, so the shape of the doodle is the waveform. *X* and *Y* are the raw pen
+  position (patch them into **XY Scope** to see the stretch being traced); *Audio X* and *Audio Y* are the same signals
+  centred and boosted for listening. *Position* and *Drift* move the stretch along the drawing, and patching Pencil's
+  *Progress* into *Position* makes the sound follow the pen you are watching.
+
 ## World 3D and immersive mode
 
 **World 3D** is a video module that renders a 3D scene from its two video inputs: input *Splats* is sampled by a cloud of
@@ -122,6 +140,7 @@ Press **Immersive** to go inside (a World 3D module is added and wired in front 
 | `js/video/modules.js` | Video module definitions (GLSL) |
 | `js/video/web.js` | Web Page source: fetch, inline, render to texture |
 | `js/video/world.js` | World 3D renderer and immersive mode |
+| `js/pencil.js` | Pencil notebook loader, the Pencil video source and the Pencil Tracer oscillator |
 | `server.mjs` | Local static server + page proxy |
 | `js/matrix.js` | Matrix patch bay |
 | `js/ui.js` | Rack panels, knobs, add-module menu |
