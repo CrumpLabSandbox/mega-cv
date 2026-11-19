@@ -511,6 +511,8 @@ const COMBOS = [
   ['Pencil on Paper + Bells', 'Pencil drawings', 'bells', 'pencilpaper'],
   ['Pencil Planet + Drone (3D)', 'Pencil drawings', 'drone', 'pencilworld'],
   ['Pencil Kaleidoscope + LFO Lab', 'Pencil drawings', 'technolfo', 'pencilkaleid'],
+  ['Half a Pencil Flipbook + Drums', 'Pencil drawings', 'drums', 'pencilneon', { pencil1: { book: 0, page: 1, speed: 6000, fade: 0, thick: 1.8 } }],
+  ['On the Phone Close-Up + Arps', 'Pencil drawings', 'arps', 'pencilpaper', { pencil1: { book: 1, page: 1, speed: 350, zoom: 3.5 } }],
   ['Silent Pencil', 'Pencil drawings', 'silent', 'pencilpaper', { pencil1: { zoom: 1, follow: 0, speed: 300 } }],
 
   ['Silent Julia Drift', 'Video only', 'silent', 'julia'],
@@ -601,6 +603,15 @@ const PENCIL = [
     conns: ['ptrace1.ax>ladder1.in', 'ptrace2.ay>ladder2.in', 'chaos1.x>ladder1.cv*0.5', 'chaos1.y>ladder2.cv*0.5', 'chaos1.z>ptrace1.span*0.2', 'chaos1.x>ptrace2.span*0.2',
       'ladder1.out>out1.l*0.5', 'ladder2.out>out1.r*0.5', 'ladder1.out>reverb1.in*0.5', 'ladder2.out>reverb1.in*0.5', 'reverb1.l>out1.l', 'reverb1.r>out1.r',
       'ptrace1.x>xyscope1.x', 'ptrace1.y>xyscope1.y', 'ptrace2.x>xyscope2.x', 'ptrace2.y>xyscope2.y', 'xyscope1.out>blend1.a', 'xyscope2.out>blend1.b', ...chain('blend1', 'feedback1', 'vout1')],
+  },
+  { // The Doodle Critic as a drum machine: every new stroke hits the hat, pen-down pushes the kick, each finished page hits the snare
+    name: 'Doodle Critic Drum Machine', group: 'Pencil drawings',
+    mods: [['pencil1', { book: 2, page: 1, speed: 220, thick: 2.2, zoom: 1.6, follow: 1 }], ['ptrace1', { book: 2, page: 1, freq: 41.2, span: 80, drift: 0, gain: 12 }],
+      ['rgbsplit1', { amt: 0.05 }], ['glow1', { th: 0.25, amt: 1.2 }], 'vout1', ['clock1', { bpm: 128 }], 'logic1', 'kick1', 'hat1', 'snare1',
+      ['ladder1', { cut: 350, res: 0.45, cva: 4 }], ['slew1', { rise: 0.01, fall: 0.2 }], 'vca1', ['mixer1', { la: 0.9, lb: 0.35, lc: 0.6, ld: 0.6 }], ['reverb1', { size: 0.6, mix: 0.2 }], ['out1', { vol: 0.6 }]],
+    conns: [...chain('pencil1', 'rgbsplit1', 'glow1', 'vout1'), 'pencil1.prog>ptrace1.pos', 'clock1.s4>logic1.a', 'pencil1.down>logic1.b', 'logic1.and>kick1.trig', 'pencil1.strk>hat1.trig', 'pencil1.end>snare1.trig',
+      'ptrace1.ax>ladder1.in', 'pencil1.pr>ladder1.cv*0.9', 'ladder1.out>vca1.in', 'pencil1.down>slew1.in', 'slew1.out>vca1.cv', 'kick1.out>mixer1.a', 'hat1.out>mixer1.b', 'snare1.out>mixer1.c', 'vca1.out>mixer1.d',
+      'mixer1.out>reverb1.in', 'reverb1.l>out1.l', 'reverb1.r>out1.r', 'pencil1.pr>rgbsplit1.amt*0.4', 'pencil1.x>pencil1.speed*0.3'],
   },
 ].map(p => ({ ...p, mods: p.mods.map(parseMod), conns: p.conns.map(parseConn) }));
 
