@@ -619,8 +619,51 @@ const built = COMBOS.map(combo);
 built.splice(built.findIndex(p => p.name === 'Wind Noise Clouds'), 0, LIFE);
 built.splice(built.findIndex(p => p.name === 'Silent Pencil') + 1, 0, ...PENCIL);
 
+// Invisible Hands: the room is left empty on purpose (press New room, or type a code, in the module).
+// Destinations are aimed at "Everyone", so they move whichever Chamber sites are in the room. Sources have to name
+// one app; they point at the Vessel site and can be re-picked in the module once another site is in the room.
+const SITE = 'chamber-vessel';
+const HANDS = [
+  { // the smallest useful patch: one slow LFO floods and drains every site in the room
+    name: 'Hands: One LFO (start here)', group: 'Invisible Hands',
+    mods: [['lfo1', { rate: 0.25 }], ['hands1', { d1: '*|bleed', m1: 2 }], ['plasma1', { scale: 3, speed: 0.4, hue: 0.8 }], 'vout1'],
+    conns: ['lfo1.sin>hands1.in1', 'lfo1.sin>plasma1.hue*0.4', ...chain('plasma1', 'vout1')],
+  },
+  { // three LFOs at unrelated rates on bleed, rot and palette, a clock flashing photos, and the reader's depth opening the drone's filter
+    name: 'Hands: Chamber LFO Lab', group: 'Invisible Hands',
+    mods: [['lfo1', { rate: 0.07 }], ['lfo2', { rate: 0.11 }], ['lfo3', { rate: 0.03 }], ['clock1', { bpm: 60 }],
+      ['hands1', { d1: '*|bleed', m1: 2, d2: '*|rot', m2: 2, d3: '*|palette', m3: 2, d4: '*|pulse', m4: 3, s1: SITE + '|depth' }],
+      ['vco1', { freq: 55 }], ['vco2', { freq: 55.4 }], ['mixer1', { la: 0.5, lb: 0.5 }], ['svf1', { cut: 260, res: 0.45, cva: 4 }], ['reverb1', { size: 0.9, mix: 0.5 }], ['out1', { vol: 0.5 }],
+      ['plasma1', { scale: 4, speed: 0.3, hue: 0.6 }], ['feedback1', { zoom: 1.02, decay: 0.7 }], 'vout1'],
+    conns: ['lfo1.sin>hands1.in1', 'lfo2.tri>hands1.in2', 'lfo3.sin>hands1.in3', 'clock1.s4>hands1.in4',
+      'vco1.saw>mixer1.a', 'vco2.saw>mixer1.b', 'mixer1.out>svf1.in', 'hands1.out1>svf1.cv', 'lfo1.sin>svf1.cv*0.25', 'svf1.lp>reverb1.in', 'reverb1.l>out1.l', 'reverb1.r>out1.r',
+      ...chain('plasma1', 'feedback1', 'vout1'), 'lfo1.sin>plasma1.hue*0.3', 'lfo2.tri>plasma1.cplx*0.4', 'hands1.out1>feedback1.zoom*0.2'],
+  },
+  { // nothing is sent: scrolling a site is the performance. Depth opens the filter, dwell raises a voice, the dive brings in noise, a flinch hits the snare
+    name: 'Hands: The Reader Plays the Synth', group: 'Invisible Hands',
+    mods: [['hands1', { s1: SITE + '|depth', s2: SITE + '|dwell', s3: SITE + '|dive', s4: SITE + '|flinch' }],
+      ['vco1', { freq: 65.4 }], ['vco2', { freq: 98 }], 'noise1', ['vca1', { level: 0, cva: 1 }], ['snare1', { decay: 0.3 }], ['mixer1', { la: 0.5, lb: 0.35, lc: 0.5, ld: 0.8 }],
+      ['svf1', { cut: 220, res: 0.5, cva: 5 }], ['delay1', { time: 0.4, fb: 0.5, mix: 0.3 }], ['reverb1', { size: 0.9, mix: 0.45 }], ['out1', { vol: 0.5 }],
+      ['plasma1', { scale: 2, speed: 0.3, hue: 0.55 }], ['glow1', { th: 0.4, amt: 0.6 }], 'vout1'],
+    conns: ['vco1.saw>mixer1.a', 'vco2.tri>mixer1.b', 'hands1.out2>vco2.voct', 'noise1.pink>vca1.in', 'hands1.out3>vca1.cv', 'vca1.out>mixer1.c', 'hands1.out4>snare1.trig', 'snare1.out>mixer1.d',
+      'mixer1.out>svf1.in', 'hands1.out1>svf1.cv', 'svf1.lp>delay1.in', 'delay1.out>reverb1.in', 'reverb1.l>out1.l', 'reverb1.r>out1.r',
+      ...chain('plasma1', 'glow1', 'vout1'), 'hands1.out1>plasma1.scale*0.6', 'hands1.out2>plasma1.hue*0.5', 'hands1.out4>glow1.amt'],
+  },
+  { // a drum loop drives the sites: every kick flashes a photo, the loudness pushes them darker, each bar picks a new member to bleed in
+    name: 'Hands: Beat Pulses the Chamber', group: 'Invisible Hands',
+    mods: [['clock1', { bpm: 112 }], ['kick1', { decay: 0.4 }], ['hat1', { decay: 0.05 }], ['mixer1', { la: 1, lb: 0.3 }], ['out1', { vol: 0.6 }],
+      ['follow1', { att: 0.005, rel: 0.2, gain: 1 }], 'noise1', 'sh1', ['lfo1', { rate: 0.04 }],
+      ['hands1', { d1: '*|pulse', m1: 3, d2: '*|depth', m2: 1, d3: '*|source', m3: 2, d4: '*|visitor', m4: 3 }],
+      ['vosc1', { freq: 6, shape: 1 }], ['glow1', { th: 0.3, amt: 1 }], 'vout1'],
+    conns: ['clock1.s4>kick1.trig', 'clock1.s8>hat1.trig', 'kick1.out>mixer1.a', 'hat1.out>mixer1.b', 'mixer1.out>out1.in', 'mixer1.out>follow1.in',
+      'clock1.s4>hands1.in1', 'follow1.out>hands1.in2', 'noise1.white>sh1.in', 'clock1.bar>sh1.trig', 'sh1.out>hands1.in3', 'lfo1.sqr>hands1.in4',
+      ...chain('vosc1', 'glow1', 'vout1'), 'follow1.out>glow1.amt', 'sh1.out>vosc1.ang*0.5'],
+  },
+].map(p => ({ ...p, mods: p.mods.map(parseMod), conns: p.conns.map(parseConn) }));
+
 export const presets = [
   ...built,
+  ...HANDS,
   { name: 'Everything (one of each, unpatched)', group: 'Utility', get mods() { return [...registry.keys()].map(t => ({ id: t + '1', type: t, params: {} })); }, conns: [] },
   { name: 'Empty', group: 'Utility', mods: [], conns: [] },
 ];

@@ -33,7 +33,7 @@ server (or the GitHub Pages copy) runs everything else, but there Web Page only 
 - **Video drives audio**: the *Video Probe* module turns the brightness / colour of a region into CV.
 - **Full screen** (top bar, the corner button on the monitor, or double-click the monitor): toggles the video to fill the screen; Esc also exits.
 - **Immersive** (top bar): fly inside the patch. See *World 3D* below.
-- **Presets**: about 110 factory patches, grouped by Beats / Techno LFO lab / Melodic / Ambient / 3D worlds / Playable / Pencil drawings / Video only / Live input.
+- **Presets**: about 110 factory patches, grouped by Beats / Techno LFO lab / Melodic / Ambient / 3D worlds / Playable / Pencil drawings / Video only / Live input / Invisible Hands.
   The *Techno LFO lab* patches run five LFOs that modulate the sound, the picture and each other (a ring-modulated "complex LFO", or a pair of LFOs driving each other's rate).
 - Patches autosave to `localStorage`; **Save / Load** use JSON files; **Rec** captures the monitor + audio to `.webm`.
 
@@ -136,6 +136,8 @@ and `pulse` and publish outputs such as `depth` and `dwell`.
   Sam on Cloudflare, which sees your IP address like any site you visit. Anyone who knows a room code can join that room.
   MEGA·CV exposes no controls of its own, so nobody in a room can change your patch.
 - To see a site you are playing inside the patch, share its tab with **Screen Capture**.
+- The *Invisible Hands* presets are starting points. They come with no room: press **New room** or type a code. Their
+  sends are aimed at *Everyone*; their receives point at the Vessel site, so re-pick them if you are using another one.
 
 `js/net/invisible-hands.js` is Sam's library, copied unchanged from commit `d98f174` of that repository.
 
