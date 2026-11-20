@@ -26,4 +26,5 @@ export const CAT_COLORS = {
   Modulation: '#5dd39e', Sequencing: '#4cc9f0', Utilities: '#9aa5b1', 'Audio I/O': '#f1f3f5',
   'Video Sources': '#00e5ff', 'Video Mix': '#7b8cff', 'Video Color': '#ff6bd6',
   'Video Geometry': '#7dff8a', 'Video FX': '#ffd166', 'Video I/O': '#f1f3f5',
+  Network: '#ff3df2',
 };

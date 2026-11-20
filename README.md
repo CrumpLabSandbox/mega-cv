@@ -41,7 +41,7 @@ Signal conventions: pitch CV is 1.0 per octave, gates and triggers are high abov
 
 ## Modules
 
-**Audio & CV (43)**
+**Audio & CV (44)**
 Oscillators: VCO, FM Op, Harmonic, Pluck, Noise, Pencil Tracer ·
 Drums: Kick, Snare, Hi-Hat ·
 Filters: SVF, Ladder, EQ ·
@@ -49,7 +49,8 @@ Effects: Wavefolder, Drive, Bitcrusher, Phaser, Reverb, Delay, Chorus, Compresso
 Modulation: LFO, ADSR, AD/Function, Chaos, Env Follower, Slew, Sample & Hold ·
 Sequencing: Clock, Clock Divider, Sequencer, Euclid, Turing, Quantizer ·
 Utilities: VCA, Mixer, Ring Mod, Offset/Atten, Panner, Logic, Scope ·
-I/O: Keyboard (computer keys `A W S E D F T G Y H U J K O L P`, optional MIDI), Audio In, Audio Out
+I/O: Keyboard (computer keys `A W S E D F T G Y H U J K O L P`, optional MIDI), Audio In, Audio Out ·
+Network: Invisible Hands
 
 **Video (48)**
 Sources: V-Osc, Ramp, V-Noise, Shape, Plasma, Pattern, Colour, Voronoi, Julia, Life, Blobs, Camera, Screen Capture, Web Page, Media File, Audio Scope, Spectrum, XY Scope, Pencil ·
@@ -114,6 +115,30 @@ new notebooks published there show up in the *Notebook* selector by themselves.
   centred and boosted for listening. *Position* and *Drift* move the stretch along the drawing, and patching Pencil's
   *Progress* into *Position* makes the sound follow the pen you are watching.
 
+## Invisible Hands (playing other apps over the internet)
+
+The **Invisible Hands** module sends CV to other web apps and brings their outputs back as CV, using Sam Ling's
+[Invisible Hands](https://github.com/samuelling/InvisibleHands) protocol. Apps meet in a *room* on a relay; only numbers
+from 0 to 1 and short labels travel. It was made to play the Chamber sites, which expose controls such as `bleed`, `rot`
+and `pulse` and publish outputs such as `depth` and `dwell`.
+
+- Press **New room** and send the other app the code (or **Copy invite** for a link that opens MEGA·CV in the room), or
+  type a code you were given and press Enter. Opening MEGA·CV with `?room=<code>` joins once the patch has the module.
+- **Send 1–4** are CV inputs. Aim each at a control from whoever is in the room: *Everyone · bleed* moves that control on
+  every app that has it. Modes: *Mod ±1* swings around wherever the control was left (for LFOs), *Set 0..1* and
+  *Set ±1→0..1* place it, and *Gate* sends on / off for switches and triggers (chosen for you when the control is one).
+  Unpatching or re-aiming a send lets go of the control it was moving.
+- **Recv 1–4** are CV outputs carrying another app's published outputs, 0 to 1.
+- Values go out about 25 times a second, so this is for modulation, not audio. All Invisible Hands modules in a patch
+  share one connection and one budget of about 90 messages a second.
+- A room code saved in a patch is not rejoined by itself: press **Join / Leave**. Clearing the code also leaves.
+- Privacy: while linked, the page holds a WebSocket to `wss://invisible-hands.samuelling.workers.dev`, a relay run by
+  Sam on Cloudflare, which sees your IP address like any site you visit. Anyone who knows a room code can join that room.
+  MEGA·CV exposes no controls of its own, so nobody in a room can change your patch.
+- To see a site you are playing inside the patch, share its tab with **Screen Capture**.
+
+`js/net/invisible-hands.js` is Sam's library, copied unchanged from commit `d98f174` of that repository.
+
 ## World 3D and immersive mode
 
 **World 3D** is a video module that renders a 3D scene from its two video inputs: input *Splats* is sampled by a cloud of
@@ -141,6 +166,8 @@ Press **Immersive** to go inside (a World 3D module is added and wired in front 
 | `js/video/web.js` | Web Page source: fetch, inline, render to texture |
 | `js/video/world.js` | World 3D renderer and immersive mode |
 | `js/pencil.js` | Pencil notebook loader, the Pencil video source and the Pencil Tracer oscillator |
+| `js/net/hands.js` | Invisible Hands module: room link, CV sends and receives |
+| `js/net/invisible-hands.js` | Invisible Hands protocol library (Sam Ling's, vendored unchanged) |
 | `server.mjs` | Local static server + page proxy |
 | `js/matrix.js` | Matrix patch bay |
 | `js/ui.js` | Rack panels, knobs, add-module menu |

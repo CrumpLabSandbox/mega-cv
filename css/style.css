@@ -196,3 +196,10 @@ button, .k, .mx, .thumb, #hud { -webkit-touch-callout: none; }
 body.knobbing #rack, body.knobbing #matrix { overflow: hidden !important; }
 @media (pointer: coarse) { html, body { position: fixed; inset: 0; width: 100%; overflow: hidden; } }
 #build { font-size: 10.5px !important; opacity: .6; }
+
+/* Invisible Hands module: pickers replace the raw destination / source text fields */
+.mod.hands-mod .others input.txt:not([placeholder^="Room"]) { display: none; }
+.mod.hands-mod .others:not(.hands-map) .sel { display: none; } /* the mode pickers are redrawn beside their destinations */
+.hands-map .sel { min-width: 0; max-width: 100%; }
+.hands-map .sel span { flex: 0 0 52px; }
+.hands-map select { width: 0; }
