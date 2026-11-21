@@ -93,6 +93,9 @@ under it. Knobs and matrix pins are finger-sized on touch screens.
   so script-built pages come out sparse; if a page cannot be drawn with styles it falls back to its text.
   *Image slideshow* mode cycles through the images found on the page instead. A direct image or video URL is shown as-is,
   and *Refresh* re-fetches on a timer, which turns a webcam JPEG URL into a live feed.
+  *Live page (runs scripts)* is for pages that build themselves with JavaScript: the page runs in a hidden, sandboxed
+  frame (scripts only, with no access to this site's storage or to the patch) and is redrawn whenever it changes, about
+  twice a second at most. Canvases, video and web fonts inside the page are not drawn, and nobody scrolls or clicks it.
 - **Screen Capture** — share any browser tab, window or screen. This is the way to get a fully live, scripted site
   (maps, video players, another app) into the patch.
 - **Camera**, **Media File** (local image / video), **Audio In**.
@@ -129,17 +132,24 @@ and `pulse` and publish outputs such as `depth` and `dwell`.
   *Set ±1→0..1* place it, and *Gate* sends on / off for switches and triggers (chosen for you when the control is one).
   Unpatching or re-aiming a send lets go of the control it was moving.
 - **Recv 1–4** are CV outputs carrying another app's published outputs, 0 to 1.
-- Values go out about 25 times a second, so this is for modulation, not audio. All Invisible Hands modules in a patch
+- Values go out about 20 times a second, so this is for modulation, not audio. All Invisible Hands modules in a patch
   share one connection and one budget of about 90 messages a second.
+- The relay has a monthly allowance shared by everyone, counted in frames received, so the module is sparing: sends
+  made in the same moment travel as one frame, nothing is sent while nobody else is in the room, and a value that is
+  not moving is repeated only every 15 seconds.
 - A room code saved in a patch is not rejoined by itself: press **Join / Leave**. Clearing the code also leaves.
 - Privacy: while linked, the page holds a WebSocket to `wss://invisible-hands.samuelling.workers.dev`, a relay run by
   Sam on Cloudflare, which sees your IP address like any site you visit. Anyone who knows a room code can join that room.
   MEGA·CV exposes no controls of its own, so nobody in a room can change your patch.
-- To see a site you are playing inside the patch, share its tab with **Screen Capture**.
+- To see a site you are playing inside the patch, add a **Web Page** source with the site's URL and set *Show* to
+  *Live page (runs scripts)*. While an Invisible Hands module is in a room, the live page is opened in the same room
+  (unless its URL names one), so it appears in the pickers and the patch can play the page it is showing. It counts
+  as one of the room's 16 connections. **Screen Capture** of a real tab also works and shows everything, canvases included.
 - The *Invisible Hands* presets are starting points. They come with no room: press **New room** or type a code. Their
   sends are aimed at *Everyone*; their receives point at the Vessel site, so re-pick them if you are using another one.
+  The first two put the Vessel site on screen as a live Web Page, so they work with no other tab open.
 
-`js/net/invisible-hands.js` is Sam's library, copied unchanged from commit `d98f174` of that repository.
+`js/net/invisible-hands.js` is Sam's library, copied unchanged from commit `80b2928` of that repository.
 
 ## World 3D and immersive mode
 
@@ -165,7 +175,7 @@ Press **Immersive** to go inside (a World 3D module is added and wired in front 
 | `js/audio/modules.js` | Audio module definitions (worklet-backed and native Web Audio) |
 | `js/video/engine.js` | WebGL2 renderer: one shader pass + ping-pong framebuffer per module |
 | `js/video/modules.js` | Video module definitions (GLSL) |
-| `js/video/web.js` | Web Page source: fetch, inline, render to texture |
+| `js/video/web.js` | Web Page source: fetch, inline, render to texture; live pages in a sandboxed frame |
 | `js/video/world.js` | World 3D renderer and immersive mode |
 | `js/pencil.js` | Pencil notebook loader, the Pencil video source and the Pencil Tracer oscillator |
 | `js/net/hands.js` | Invisible Hands module: room link, CV sends and receives |

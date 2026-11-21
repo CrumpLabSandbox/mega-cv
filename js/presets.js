@@ -623,21 +623,23 @@ built.splice(built.findIndex(p => p.name === 'Silent Pencil') + 1, 0, ...PENCIL)
 // Destinations are aimed at "Everyone", so they move whichever Chamber sites are in the room. Sources have to name
 // one app; they point at the Vessel site and can be re-picked in the module once another site is in the room.
 const SITE = 'chamber-vessel';
+// the Vessel site itself, as a live Web Page source: it joins the module's room, so the patch plays the page it shows
+const SITE_PAGE = ['web1', { url: 'https://samuelling.github.io/Chamber/vessel/', mode: 2, scroll: 0.02 }];
 const HANDS = [
-  { // the smallest useful patch: one slow LFO floods and drains every site in the room
+  { // the smallest useful patch: one slow LFO floods and drains every site in the room, and the Vessel site is on screen to show it
     name: 'Hands: One LFO (start here)', group: 'Invisible Hands',
-    mods: [['lfo1', { rate: 0.25 }], ['hands1', { d1: '*|bleed', m1: 2 }], ['plasma1', { scale: 3, speed: 0.4, hue: 0.8 }], 'vout1'],
-    conns: ['lfo1.sin>hands1.in1', 'lfo1.sin>plasma1.hue*0.4', ...chain('plasma1', 'vout1')],
+    mods: [['lfo1', { rate: 0.1 }], ['hands1', { d1: '*|bleed', m1: 2 }], SITE_PAGE, 'vout1'],
+    conns: ['lfo1.sin>hands1.in1', ...chain('web1', 'vout1')],
   },
   { // three LFOs at unrelated rates on bleed, rot and palette, a clock flashing photos, and the reader's depth opening the drone's filter
     name: 'Hands: Chamber LFO Lab', group: 'Invisible Hands',
     mods: [['lfo1', { rate: 0.07 }], ['lfo2', { rate: 0.11 }], ['lfo3', { rate: 0.03 }], ['clock1', { bpm: 60 }],
       ['hands1', { d1: '*|bleed', m1: 2, d2: '*|rot', m2: 2, d3: '*|palette', m3: 2, d4: '*|pulse', m4: 3, s1: SITE + '|depth' }],
       ['vco1', { freq: 55 }], ['vco2', { freq: 55.4 }], ['mixer1', { la: 0.5, lb: 0.5 }], ['svf1', { cut: 260, res: 0.45, cva: 4 }], ['reverb1', { size: 0.9, mix: 0.5 }], ['out1', { vol: 0.5 }],
-      ['plasma1', { scale: 4, speed: 0.3, hue: 0.6 }], ['feedback1', { zoom: 1.02, decay: 0.7 }], 'vout1'],
+      SITE_PAGE, ['feedback1', { zoom: 1.01, decay: 0.5 }], 'vout1'],
     conns: ['lfo1.sin>hands1.in1', 'lfo2.tri>hands1.in2', 'lfo3.sin>hands1.in3', 'clock1.s4>hands1.in4',
       'vco1.saw>mixer1.a', 'vco2.saw>mixer1.b', 'mixer1.out>svf1.in', 'hands1.out1>svf1.cv', 'lfo1.sin>svf1.cv*0.25', 'svf1.lp>reverb1.in', 'reverb1.l>out1.l', 'reverb1.r>out1.r',
-      ...chain('plasma1', 'feedback1', 'vout1'), 'lfo1.sin>plasma1.hue*0.3', 'lfo2.tri>plasma1.cplx*0.4', 'hands1.out1>feedback1.zoom*0.2'],
+      ...chain('web1', 'feedback1', 'vout1'), 'lfo2.tri>web1.zoom*0.05', 'lfo3.sin>feedback1.hsh*0.1'],
   },
   { // nothing is sent: scrolling a site is the performance. Depth opens the filter, dwell raises a voice, the dive brings in noise, a flinch hits the snare
     name: 'Hands: The Reader Plays the Synth', group: 'Invisible Hands',

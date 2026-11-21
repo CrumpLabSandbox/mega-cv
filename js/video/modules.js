@@ -3,7 +3,7 @@
 // one sampler per video input (a, b, c), one float uniform per param, plus the helpers in engine.js LIB.
 // Param flags: cv = gets a CV input in the matrix (+-1 sweeps the full range), acc = integrated over time (speed -> phase).
 import { register, P, SEL, TOG, BTN, TEXT, ports } from '../defs.js';
-import { loadWeb, webFrame } from './web.js';
+import { loadWeb, webFrame, stopLive } from './web.js';
 
 export function V(type, name, cat, o) {
   const params = o.params || [], vins = ports(o.ins || [], 'v'), ains = o.ains || [], aouts = o.aouts || [];
@@ -127,14 +127,14 @@ V('screen', 'Screen Capture', 'Video Sources', {
 });
 V('web', 'Web Page', 'Video Sources', {
   status: 1, tex: ['page'], xuni: ['pages'], cols: 3,
-  params: [TEXT('url', 'https://…', 'https://en.wikipedia.org/wiki/Video_synthesizer'), BTN('go', 'Reload'), SEL('mode', 'Show', ['Rendered page', 'Image slideshow']),
+  params: [TEXT('url', 'https://…', 'https://en.wikipedia.org/wiki/Video_synthesizer'), BTN('go', 'Reload'), SEL('mode', 'Show', ['Rendered page', 'Image slideshow', 'Live page (runs scripts)']),
     P('scroll', 'Scroll', -1, 1, 0.04, { acc: 1, cv: 1 }), P('pos', 'Position', 0, 1, 0, CV), P('zoom', 'Zoom', 0.25, 8, 1, { exp: 1, cv: 1 }),
     P('hold', 'Slide time', 0.1, 30, 3, { exp: 1, unit: 's' }), P('refresh', 'Refresh', 0, 600, 0, { step: 1, unit: 's' })],
   glsl: `vec4 fx(vec2 uv){vec2 q=(uv-.5)/zoom+.5;float y=mod(pos*max(pages-1.,0.)+(pages>1.01?scroll:0.)+(1.-q.y),pages);return texture(page,vec2(q.x,1.-y/pages));}`,
   onParam(inst, eng, impl, id) { if (id === 'url' || id === 'mode') { clearTimeout(impl.pend); impl.pend = setTimeout(() => loadWeb(inst, eng, impl), 60); } },
   action(inst, eng, impl) { loadWeb(inst, eng, impl); },
   frame: webFrame,
-  dispose(inst, eng, impl) { clearTimeout(impl.pend); impl.el?.pause?.(); },
+  dispose(inst, eng, impl) { clearTimeout(impl.pend); impl.el?.pause?.(); stopLive(impl); },
 });
 V('media', 'Media File', 'Video Sources', {
   params: [BTN('load', 'Load image / video')], tex: ['img'],

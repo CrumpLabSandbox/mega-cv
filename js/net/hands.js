@@ -12,22 +12,32 @@ import './invisible-hands.js'; // vendored, unchanged; sets globalThis.Invisible
 
 const RELAY = 'wss://invisible-hands.samuelling.workers.dev'; // given explicitly, so a ?relay= in a link is ignored
 const SLOTS = 4;
-const SEND_MS = 40;         // 25 Hz per slot
+const SEND_MS = 50;         // 20 Hz per slot; every slot that moves in one tick leaves in a single frame
 const BUDGET = 90;          // messages per second for all copies together; the relay allows 120 per connection
-const KEEPALIVE = 5000;     // re-send an unchanged value this often, so sites don't drift back to their own LFOs
+const KEEPALIVE = 15000;    // re-send held values this often, all in one tick, so sites don't drift back to their own LFOs (Chamber waits 20 s)
 const MODES = ['Mod ±1', 'Set 0..1', 'Set ±1→0..1', 'Gate'];
 const clamp = (v, lo, hi) => v < lo ? lo : v > hi ? hi : v;
 
-let hands = null, timerOn = false, tokens = BUDGET, tLast = 0, rr = 0;
+let hands = null, timerOn = false, tokens = BUDGET, tLast = 0, rr = 0, keepAt = 0, seen = null;
 const insts = new Set();
 
 function link() {
   if (hands || !globalThis.InvisibleHands) return hands;
   hands = globalThis.InvisibleHands.create({ app: 'mega-cv', name: 'MEGA·CV', relay: RELAY }); // joins ?room=… by itself
-  const changed = () => insts.forEach(i => { i.impl.resend(); i.impl.redraw?.(); });
-  hands.on('status', changed); hands.on('peers', changed);
+  // say every value again only when someone new arrives or the link comes back, not each time a peer re-describes itself
+  const redraw = () => insts.forEach(i => i.impl.redraw?.());
+  const again = () => insts.forEach(i => i.impl.resend());
+  hands.on('status', st => { if (st === 'on') { seen = new Set(); again(); } redraw(); });
+  hands.on('peers', list => {
+    const ids = new Set(list.map(q => q.id));
+    if (!(seen instanceof Set) || [...ids].some(x => !seen.has(x))) again();
+    seen = ids; redraw();
+  });
   return hands;
 }
+
+// the room MEGA·CV is in or joining, '' if none (the Web Page source opens live pages in the same room)
+export const handsRoom = () => hands?.room || '';
 
 // One timer for every copy. A worker's timer keeps its pace when this tab is in the background.
 function startTimer() {
@@ -44,12 +54,13 @@ function pump() {
   const now = performance.now(), list = [...insts];
   tokens = Math.min(BUDGET, tokens + (now - tLast) / 1000 * BUDGET); tLast = now;
   for (const inst of list) inst.impl.recv();
-  if (h.status !== 'on') return;
+  if (h.status !== 'on' || !h.peers.length) return; // alone in the room: nobody to move, so nothing is sent
+  if (now >= keepAt) { keepAt = now + KEEPALIVE; for (const inst of list) inst.impl.resend(); } // the shared keep-alive tick
   const n = list.length * SLOTS;
   for (let k = 0; k < n; k++) {
     const j = (rr + k) % n;
     if (tokens < 1) { rr = j; return; } // out of budget: the next round starts with the slot that missed out
-    if (list[Math.floor(j / SLOTS)].impl.send(j % SLOTS, now)) tokens--;
+    if (list[Math.floor(j / SLOTS)].impl.send(j % SLOTS)) tokens--;
   }
 }
 
@@ -75,7 +86,7 @@ register({
   create(ac, inst, env) {
     const h = link();
     const ains = {}, aouts = {}, an = [], cs = [], buf = new Float32Array(32);
-    const live = Array(SLOTS).fill(0), cur = Array(SLOTS).fill(null), sentAt = Array(SLOTS).fill(0);
+    const live = Array(SLOTS).fill(0), cur = Array(SLOTS).fill(null), said = Array(SLOTS).fill(false);
     for (let i = 0; i < SLOTS; i++) {
       const a = ac.createAnalyser(); a.fftSize = 32; a.connect(env.sink); an.push(a); ains['in' + (i + 1)] = a;
       const c = ac.createConstantSource(); c.offset.value = 0; c.start(); cs.push(c); aouts['out' + (i + 1)] = c;
@@ -109,7 +120,7 @@ register({
         }
       },
       connected(inp, d) { const i = +inp.slice(2) - 1; live[i] = Math.max(0, live[i] + d); },
-      resend() { sentAt.fill(0); }, // someone joined or the link came back: say every value again
+      resend() { said.fill(false); }, // someone joined, the link came back, or the keep-alive is due: say every value again
       // received: published outputs of the chosen app become CV
       recv() {
         const t = ac.currentTime;
@@ -119,8 +130,8 @@ register({
           cs[i].offset.setTargetAtTime(v, t, 0.03);
         }
       },
-      // send slot i if its value moved, or to keep it alive; returns true when a message went out
-      send(i, now) {
+      // send slot i if its value moved, or if it is due to be said again; returns true when a message went out
+      send(i) {
         const d = parseDest(inst.params['d' + (i + 1)]);
         if (!d || !live[i]) { if (cur[i]) release(i); return false; }
         const mode = clamp(Math.round(+inst.params['m' + (i + 1)]) || 0, 0, 3), c = cur[i];
@@ -131,9 +142,9 @@ register({
         let v = mode === 0 ? clamp(x, -1, 1) : mode === 1 ? clamp(x, 0, 1) : mode === 2 ? clamp((x + 1) / 2, 0, 1) : (x > 0.5 ? 1 : 0);
         v = Math.round(v * 1000) / 1000;
         const moved = !same || Math.abs(v - c.v) >= (mode === 3 ? 0.5 : 0.004);
-        if (!moved && now - sentAt[i] < KEEPALIVE) return false;
+        if (!moved && said[i]) return false;
         if (!(mode === 0 ? h.mod(d.to, d.p, v) : h.set(d.to, d.p, v))) return false;
-        cur[i] = { to: d.to, p: d.p, mode, v }; sentAt[i] = now;
+        cur[i] = { to: d.to, p: d.p, mode, v }; said[i] = true;
         return true;
       },
       dispose() {
